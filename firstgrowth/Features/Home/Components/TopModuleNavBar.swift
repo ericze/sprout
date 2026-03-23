@@ -12,14 +12,14 @@ struct TopModuleNavBar: View {
                     Button {
                         onSelect(module)
                     } label: {
-                        VStack(spacing: 6) {
+                        VStack(spacing: 5) {
                             Text(module.title)
                                 .font(module == currentModule ? AppTheme.Typography.navSelected : AppTheme.Typography.nav)
                                 .foregroundStyle(module == currentModule ? AppTheme.Colors.primaryText : AppTheme.Colors.secondaryText)
 
                             Capsule()
-                                .fill(module == currentModule ? AppTheme.Colors.primaryText.opacity(0.16) : .clear)
-                                .frame(width: 26, height: 3)
+                                .fill(module == currentModule ? AppTheme.Colors.sageGreen : .clear)
+                                .frame(width: 16, height: 3)
                         }
                         .frame(minWidth: 48)
                     }

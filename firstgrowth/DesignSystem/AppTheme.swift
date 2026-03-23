@@ -8,6 +8,7 @@ enum AppTheme {
         static let cardBackground = Color.dynamic(light: 0xFFFFFF, dark: 0x2A2724)
         static let primaryText = Color.dynamic(light: 0x3A342F, dark: 0xEFEAE0)
         static let accent = Color(hex: 0x8FAE9B)
+        static let sageGreen = accent
         static let highlight = Color(hex: 0xD89A7A)
         static let divider = primaryText.opacity(0.08)
         static let floatingMaterial = Color.dynamic(light: 0xFFFFFF, dark: 0x2A2724).opacity(0.94)
@@ -16,6 +17,7 @@ enum AppTheme {
         static let secondaryText = primaryText.opacity(0.6)
         static let tertiaryText = primaryText.opacity(0.4)
         static let iconBackground = accent.opacity(0.14)
+        static let homeTimelineIconBackground = sageGreen.opacity(0.15)
     }
 
     enum Typography {

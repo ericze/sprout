@@ -7,13 +7,13 @@ struct RecordTypeIcon: View {
         Group {
             switch icon {
             case .milk:
-                MilkBottleIcon()
+                MilkBottleIcon(color: AppTheme.Colors.primaryText)
                     .frame(width: 17, height: 17)
             case .food:
-                FoodSolidsIcon()
+                FoodSolidsIcon(color: AppTheme.Colors.primaryText)
                     .frame(width: 17, height: 17)
             case .diaper:
-                DiaperIcon()
+                DiaperIcon(color: AppTheme.Colors.primaryText)
                     .frame(width: 17, height: 17)
             case .sleep, .height, .weight:
                 Image(systemName: icon.systemName)
@@ -21,8 +21,8 @@ struct RecordTypeIcon: View {
                     .foregroundStyle(AppTheme.Colors.primaryText)
             }
         }
-        .frame(width: 42, height: 42)
-        .background(AppTheme.Colors.iconBackground)
+        .frame(width: 40, height: 40)
+        .background(AppTheme.Colors.homeTimelineIconBackground)
         .clipShape(Circle())
     }
 }

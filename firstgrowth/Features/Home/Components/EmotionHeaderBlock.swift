@@ -5,6 +5,8 @@ struct EmotionHeaderBlock: View {
     let referenceDate: Date
     let calendar: Calendar
 
+    private let subtitleFontSize: CGFloat = 15
+
     init(headerConfig: HomeHeaderConfig, referenceDate: Date, calendar: Calendar = .current) {
         self.headerConfig = headerConfig
         self.referenceDate = referenceDate
@@ -17,9 +19,19 @@ struct EmotionHeaderBlock: View {
                 .font(AppTheme.Typography.headerDate)
                 .foregroundStyle(AppTheme.Colors.primaryText)
 
-            Text("\(headerConfig.babyName)的第 \(dayCount) 天")
-                .font(AppTheme.Typography.headerMeta)
-                .foregroundStyle(AppTheme.Colors.secondaryText)
+            HStack(spacing: 0) {
+                Text("\(headerConfig.babyName)的第 ")
+                    .font(.system(size: subtitleFontSize, weight: .regular, design: .default))
+                    .foregroundStyle(AppTheme.Colors.secondaryText)
+
+                Text(dayCount.formatted())
+                    .font(.system(size: subtitleFontSize, weight: .semibold, design: .default))
+                    .foregroundStyle(AppTheme.Colors.sageGreen)
+
+                Text(" 天")
+                    .font(.system(size: subtitleFontSize, weight: .regular, design: .default))
+                    .foregroundStyle(AppTheme.Colors.secondaryText)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 6)
