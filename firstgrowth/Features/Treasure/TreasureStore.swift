@@ -20,6 +20,8 @@ final class TreasureStore {
     @ObservationIgnored private var undoDismissTask: Task<Void, Never>?
     @ObservationIgnored private var monthScrubberFadeTask: Task<Void, Never>?
     @ObservationIgnored private var monthHintTask: Task<Void, Never>?
+    @ObservationIgnored private var fabRevealTask: Task<Void, Never>?
+    @ObservationIgnored private var isScrollInteractionActive = false
     @ObservationIgnored private var lastScrollOffset: CGFloat?
     @ObservationIgnored private var lastScrollTimestamp: TimeInterval?
 
@@ -53,6 +55,7 @@ final class TreasureStore {
         undoDismissTask?.cancel()
         monthScrubberFadeTask?.cancel()
         monthHintTask?.cancel()
+        fabRevealTask?.cancel()
     }
 }
 
@@ -96,6 +99,12 @@ extension TreasureStore {
 
         case let .didScroll(offset, timestamp):
             updateScroll(offset: offset, timestamp: timestamp)
+
+        case .beginScrollInteraction:
+            beginScrollInteraction()
+
+        case .endScrollInteraction:
+            endScrollInteraction()
 
         case .tapAddToday:
             beginCompose()
@@ -171,18 +180,29 @@ extension TreasureStore {
 
         let previousOffset = lastScrollOffset ?? offset
         let previousTimestamp = lastScrollTimestamp ?? timestamp
-        let delta = offset - previousOffset
+        let previousDistanceFromTop = abs(previousOffset)
+        let currentDistanceFromTop = abs(offset)
+        let delta = currentDistanceFromTop - previousDistanceFromTop
         let duration = max(timestamp - previousTimestamp, 0.001)
         let velocity = abs(delta) / duration
 
-        if offset >= -24 {
+        if currentDistanceFromTop <= 24 {
+            setFloatingAddButtonVisible(true)
             if viewState.scrollIntentState != .monthScrubbing {
                 viewState.scrollIntentState = .idle
             }
         } else if delta < -0.5 {
-            viewState.scrollIntentState = velocity > 1500 ? .fastScrolling : .readingDown
-        } else if delta > 0.5 {
             viewState.scrollIntentState = .reversingUp
+            setFloatingAddButtonVisible(true)
+        } else if delta > 0.5 {
+            viewState.scrollIntentState = velocity > 1500 ? .fastScrolling : .readingDown
+            setFloatingAddButtonVisible(false)
+        }
+
+        if isScrollInteractionActive {
+            cancelFloatingAddButtonReveal()
+        } else {
+            scheduleFloatingAddButtonReveal()
         }
 
         guard viewState.monthAnchors.count >= 2 else {
@@ -192,7 +212,7 @@ extension TreasureStore {
             return
         }
 
-        if velocity > 1500, offset < -60 {
+        if velocity > 1500, currentDistanceFromTop > 60 {
             showMonthScrubber()
         }
     }
@@ -320,6 +340,7 @@ extension TreasureStore {
     private func beginMonthScrubbing(height: CGFloat, locationY: CGFloat) {
         guard viewState.monthAnchors.count >= 2 else { return }
         cancelMonthScrubberFade()
+        cancelFloatingAddButtonReveal()
         viewState.monthScrubberState = .dragging
         viewState.scrollIntentState = .monthScrubbing
         updateMonthScrubbing(height: height, locationY: locationY)
@@ -549,15 +570,56 @@ extension TreasureStore {
     }
 
     private func resetScrollTracking() {
+        isScrollInteractionActive = false
         lastScrollOffset = nil
         lastScrollTimestamp = nil
+        cancelFloatingAddButtonReveal()
+        setFloatingAddButtonVisible(true)
         if viewState.scrollIntentState != .monthScrubbing {
             viewState.scrollIntentState = .idle
         }
     }
 
+    private func beginScrollInteraction() {
+        guard !isScrollInteractionActive else { return }
+        isScrollInteractionActive = true
+        cancelFloatingAddButtonReveal()
+    }
+
+    private func endScrollInteraction() {
+        guard isScrollInteractionActive else { return }
+        isScrollInteractionActive = false
+
+        guard viewState.monthScrubberState != .dragging else { return }
+
+        if let lastScrollOffset, abs(lastScrollOffset) <= 24 {
+            setFloatingAddButtonVisible(true)
+        } else {
+            scheduleFloatingAddButtonReveal()
+        }
+    }
+
     private func normalizeImagePaths(_ paths: [String]) -> [String] {
         paths.compactMap { $0.trimmed.nilIfEmpty }
+    }
+
+    private func setFloatingAddButtonVisible(_ isVisible: Bool) {
+        viewState.isFloatingAddButtonVisible = isVisible
+    }
+
+    private func scheduleFloatingAddButtonReveal() {
+        cancelFloatingAddButtonReveal()
+        fabRevealTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(220))
+            guard let self, !Task.isCancelled, self.viewState.monthScrubberState != .dragging else { return }
+            self.setFloatingAddButtonVisible(true)
+            self.fabRevealTask = nil
+        }
+    }
+
+    private func cancelFloatingAddButtonReveal() {
+        fabRevealTask?.cancel()
+        fabRevealTask = nil
     }
 }
 

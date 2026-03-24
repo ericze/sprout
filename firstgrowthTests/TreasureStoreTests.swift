@@ -98,6 +98,108 @@ final class TreasureStoreTests: XCTestCase {
         XCTAssertNil(store.viewState.undoToast)
     }
 
+    func testFloatingAddButtonStartsVisible() throws {
+        let environment = try makeTestEnvironment(now: Date(timeIntervalSince1970: 1_710_000_000))
+        let store = makeTreasureStore(environment: environment)
+
+        store.onAppear()
+
+        XCTAssertTrue(store.viewState.isFloatingAddButtonVisible)
+    }
+
+    func testScrollingDownHidesFloatingAddButton() throws {
+        let environment = try makeTestEnvironment(now: Date(timeIntervalSince1970: 1_710_000_000))
+        let store = makeTreasureStore(environment: environment)
+
+        store.onAppear()
+        store.handle(.didScroll(offset: 0, timestamp: 0))
+        store.handle(.didScroll(offset: -120, timestamp: 1))
+
+        XCTAssertFalse(store.viewState.isFloatingAddButtonVisible)
+    }
+
+    func testScrollingUpShowsFloatingAddButton() throws {
+        let environment = try makeTestEnvironment(now: Date(timeIntervalSince1970: 1_710_000_000))
+        let store = makeTreasureStore(environment: environment)
+
+        store.onAppear()
+        store.handle(.didScroll(offset: 0, timestamp: 0))
+        store.handle(.didScroll(offset: -120, timestamp: 1))
+        store.handle(.didScroll(offset: -80, timestamp: 2))
+
+        XCTAssertTrue(store.viewState.isFloatingAddButtonVisible)
+    }
+
+    func testScrollingFartherFromTopHidesFloatingAddButtonForPositiveOffsets() throws {
+        let environment = try makeTestEnvironment(now: Date(timeIntervalSince1970: 1_710_000_000))
+        let store = makeTreasureStore(environment: environment)
+
+        store.onAppear()
+        store.handle(.didScroll(offset: 0, timestamp: 0))
+        store.handle(.didScroll(offset: 120, timestamp: 1))
+
+        XCTAssertFalse(store.viewState.isFloatingAddButtonVisible)
+    }
+
+    func testScrollingCloserToTopShowsFloatingAddButtonForPositiveOffsets() throws {
+        let environment = try makeTestEnvironment(now: Date(timeIntervalSince1970: 1_710_000_000))
+        let store = makeTreasureStore(environment: environment)
+
+        store.onAppear()
+        store.handle(.didScroll(offset: 0, timestamp: 0))
+        store.handle(.didScroll(offset: 120, timestamp: 1))
+        store.handle(.didScroll(offset: 80, timestamp: 2))
+
+        XCTAssertTrue(store.viewState.isFloatingAddButtonVisible)
+    }
+
+    func testStoppedScrollShowsFloatingAddButtonAgain() async throws {
+        let environment = try makeTestEnvironment(now: Date(timeIntervalSince1970: 1_710_000_000))
+        let store = makeTreasureStore(environment: environment)
+
+        store.onAppear()
+        store.handle(.didScroll(offset: 0, timestamp: 0))
+        store.handle(.didScroll(offset: -120, timestamp: 1))
+        XCTAssertFalse(store.viewState.isFloatingAddButtonVisible)
+
+        try await Task.sleep(for: .milliseconds(300))
+
+        XCTAssertTrue(store.viewState.isFloatingAddButtonVisible)
+    }
+
+    func testActiveScrollInteractionKeepsFloatingAddButtonHidden() async throws {
+        let environment = try makeTestEnvironment(now: Date(timeIntervalSince1970: 1_710_000_000))
+        let store = makeTreasureStore(environment: environment)
+
+        store.onAppear()
+        store.handle(.beginScrollInteraction)
+        store.handle(.didScroll(offset: 0, timestamp: 0))
+        store.handle(.didScroll(offset: -120, timestamp: 1))
+
+        XCTAssertFalse(store.viewState.isFloatingAddButtonVisible)
+
+        try await Task.sleep(for: .milliseconds(300))
+
+        XCTAssertFalse(store.viewState.isFloatingAddButtonVisible)
+
+        store.handle(.endScrollInteraction)
+        try await Task.sleep(for: .milliseconds(300))
+
+        XCTAssertTrue(store.viewState.isFloatingAddButtonVisible)
+    }
+
+    func testReturningToTopShowsFloatingAddButton() throws {
+        let environment = try makeTestEnvironment(now: Date(timeIntervalSince1970: 1_710_000_000))
+        let store = makeTreasureStore(environment: environment)
+
+        store.onAppear()
+        store.handle(.didScroll(offset: 0, timestamp: 0))
+        store.handle(.didScroll(offset: -120, timestamp: 1))
+        store.handle(.didScroll(offset: -12, timestamp: 2))
+
+        XCTAssertTrue(store.viewState.isFloatingAddButtonVisible)
+    }
+
     func testDiscardingDraftRemovesAllDraftImages() throws {
         let environment = try makeTestEnvironment(now: Date(timeIntervalSince1970: 1_710_000_000))
         var removedPaths: [String] = []

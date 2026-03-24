@@ -14,9 +14,15 @@ enum TreasureTheme {
     static let contentPadding: CGFloat = 16
     static let listHorizontalPadding: CGFloat = 16
     static let listTopPadding: CGFloat = 12
-    static let listBottomPadding: CGFloat = 32
+    static let listBottomPadding: CGFloat = 140
     static let mediaAspectRatio: CGFloat = 4.0 / 3.0
-    static let headerButtonSize: CGFloat = 44
+    static let floatingButtonBottomInset: CGFloat = 24
+    static let floatingButtonHorizontalPadding: CGFloat = 18
+    static let floatingButtonVerticalPadding: CGFloat = 12
+    static let floatingButtonShadowColor = Color.black.opacity(0.05)
+    static let floatingButtonShadowRadius: CGFloat = 10
+    static let floatingButtonShadowY: CGFloat = 4
+    static let floatingButtonForeground = AppTheme.Colors.sageGreen
 }
 
 struct TopRoundedCardShape: Shape {

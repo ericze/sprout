@@ -130,6 +130,7 @@ struct TreasureViewState: Equatable {
     var dataState: TreasureDataState = .loading
     var scrollIntentState: TreasureScrollIntentState = .idle
     var monthScrubberState: TreasureMonthScrubberState = .hidden
+    var isFloatingAddButtonVisible = true
     var composeState: TreasureComposeState = .closed
     var weeklyLetterViewState: TreasureWeeklyLetterViewState = .collapsed
     var timelineItems: [TreasureTimelineItem] = []
@@ -151,6 +152,8 @@ struct TreasureViewState: Equatable {
 enum TreasureAction {
     case onAppear
     case didScroll(offset: CGFloat, timestamp: TimeInterval)
+    case beginScrollInteraction
+    case endScrollInteraction
     case tapAddToday
     case dismissCompose
     case confirmDiscard

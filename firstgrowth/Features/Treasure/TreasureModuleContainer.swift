@@ -8,28 +8,30 @@ struct TreasureModuleContainer: View {
         GeometryReader { geometry in
             ScrollViewReader { proxy in
                 ZStack(alignment: .topTrailing) {
-                    VStack(spacing: 0) {
-                        TreasureHeaderBar(action: { store.handle(.tapAddToday) })
-                            .padding(.horizontal, TreasureTheme.listHorizontalPadding)
-                            .padding(.top, 4)
-                            .padding(.bottom, 8)
+                    ScrollView(showsIndicators: false) {
+                        TreasureScrollOffsetReader()
 
-                        ScrollView(showsIndicators: false) {
-                            TreasureScrollOffsetReader()
-
-                            TreasureTimelineList(
-                                dataState: store.viewState.dataState,
-                                items: store.viewState.timelineItems,
-                                errorMessage: store.viewState.errorMessage,
-                                onTapWeeklyLetter: { store.handle(.tapWeeklyLetter($0)) }
-                            )
-                            .padding(.horizontal, TreasureTheme.listHorizontalPadding)
-                            .padding(.top, TreasureTheme.listTopPadding)
-                            .padding(.bottom, TreasureTheme.listBottomPadding)
-                        }
-                        .coordinateSpace(name: TreasureScrollOffsetReader.coordinateSpaceName)
+                        TreasureTimelineList(
+                            dataState: store.viewState.dataState,
+                            items: store.viewState.timelineItems,
+                            errorMessage: store.viewState.errorMessage,
+                            onTapWeeklyLetter: { store.handle(.tapWeeklyLetter($0)) }
+                        )
+                        .padding(.horizontal, TreasureTheme.listHorizontalPadding)
+                        .padding(.top, TreasureTheme.listTopPadding)
+                        .padding(.bottom, TreasureTheme.listBottomPadding)
                     }
+                    .coordinateSpace(name: TreasureScrollOffsetReader.coordinateSpaceName)
                     .background(TreasureTheme.pageBackground)
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 1)
+                            .onChanged { _ in
+                                store.handle(.beginScrollInteraction)
+                            }
+                            .onEnded { _ in
+                                store.handle(.endScrollInteraction)
+                            }
+                    )
 
                     if store.viewState.monthScrubberState != .hidden {
                         TreasureMonthScrubber(
@@ -48,9 +50,17 @@ struct TreasureModuleContainer: View {
                         .padding(.top, geometry.size.height * 0.26)
                         .transition(.move(edge: .trailing).combined(with: .opacity))
                     }
+
+                    TreasureFloatingAddButton(
+                        isVisible: shouldShowFloatingAddButton,
+                        action: { store.handle(.tapAddToday) }
+                    )
+                    .padding(.bottom, geometry.safeAreaInsets.bottom + TreasureTheme.floatingButtonBottomInset)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
                 }
                 .background(TreasureTheme.pageBackground.ignoresSafeArea())
                 .animation(AppTheme.stateAnimation, value: store.viewState.monthScrubberState)
+                .animation(AppTheme.stateAnimation, value: shouldShowFloatingAddButton)
                 .onPreferenceChange(TreasureScrollOffsetPreferenceKey.self) { offset in
                     store.handle(.didScroll(offset: offset, timestamp: Date().timeIntervalSinceReferenceDate))
                 }
@@ -72,6 +82,10 @@ struct TreasureModuleContainer: View {
                 }
             }
         }
+    }
+
+    private var shouldShowFloatingAddButton: Bool {
+        store.viewState.isFloatingAddButtonVisible && store.viewState.undoToast == nil
     }
 
     private var weeklyLetterBinding: Binding<TreasureTimelineItem?> {
