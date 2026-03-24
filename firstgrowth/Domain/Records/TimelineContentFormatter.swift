@@ -1,11 +1,7 @@
 import Foundation
 
 struct TimelineContentFormatter {
-    private let fileManager: FileManager
-
-    nonisolated init(fileManager: FileManager = .default) {
-        self.fileManager = fileManager
-    }
+    nonisolated init() {}
 
     func makeDisplayItems(from records: [RecordItem]) -> [TimelineDisplayItem] {
         records.compactMap(makeDisplayItem)
@@ -16,14 +12,15 @@ struct TimelineContentFormatter {
 
         switch recordType {
         case .milk:
+            let content = makeFeedingContent(from: record)
             return TimelineDisplayItem(
                 id: record.id,
                 recordID: record.id,
                 timestamp: record.timestamp,
                 cardStyle: .standard,
                 leadingIcon: .milk,
-                title: formatMilkTitle(value: record.value),
-                subtitle: nil,
+                title: content.title,
+                subtitle: content.subtitle,
                 imagePath: nil,
                 type: .milk
             )
@@ -71,10 +68,31 @@ struct TimelineContentFormatter {
         }
     }
 
-    func formatMilkTitle(value: Double?) -> String {
-        guard let value, value > 0 else { return "记录了一次奶量" }
-        let amount = value.rounded(.towardZero)
-        return "\(Int(amount))ml"
+    func makeFeedingContent(from record: RecordItem) -> (title: String, subtitle: String?) {
+        let leftSeconds = max(record.leftNursingSeconds, 0)
+        let rightSeconds = max(record.rightNursingSeconds, 0)
+        let totalNursingSeconds = leftSeconds + rightSeconds
+        let bottleAmountMl = record.bottleAmountMl
+
+        if totalNursingSeconds > 0, bottleAmountMl > 0 {
+            return (
+                "亲喂 \(floorMinutes(totalNursingSeconds))分钟 + \(bottleAmountMl)ml 瓶喂",
+                makeNursingSubtitle(leftSeconds: leftSeconds, rightSeconds: rightSeconds)
+            )
+        }
+
+        if totalNursingSeconds > 0 {
+            return (
+                "亲喂 \(floorMinutes(totalNursingSeconds))分钟",
+                makeNursingSubtitle(leftSeconds: leftSeconds, rightSeconds: rightSeconds)
+            )
+        }
+
+        if bottleAmountMl > 0 {
+            return ("\(bottleAmountMl)ml 瓶喂", nil)
+        }
+
+        return ("记录了一次喂奶", nil)
     }
 
     func formatDiaperTitle(subType: String?) -> String {
@@ -125,6 +143,18 @@ struct TimelineContentFormatter {
 
     private func isUsableImagePath(_ path: String?) -> Bool {
         guard let path, !path.trimmed.isEmpty else { return false }
-        return fileManager.fileExists(atPath: path)
+        return FileManager.default.fileExists(atPath: path)
+    }
+
+    private func makeNursingSubtitle(leftSeconds: Int, rightSeconds: Int) -> String? {
+        let leftMinutes = floorMinutes(leftSeconds)
+        let rightMinutes = floorMinutes(rightSeconds)
+
+        guard leftMinutes > 0 || rightMinutes > 0 else { return nil }
+        return "左 \(leftMinutes)m · 右 \(rightMinutes)m"
+    }
+
+    private func floorMinutes(_ seconds: Int) -> Int {
+        max(0, seconds / 60)
     }
 }

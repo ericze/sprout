@@ -149,8 +149,8 @@ struct HomeContainerView: View {
     private func sheetView(for sheet: ActiveSheet) -> some View {
         switch sheet {
         case .milk:
-            MilkRecordSheet(store: store)
-                .presentationDetents([.height(420)])
+            MilkLoggingSheet(store: store)
+                .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
                 .presentationBackground(AppTheme.Colors.background)
         case .diaper:

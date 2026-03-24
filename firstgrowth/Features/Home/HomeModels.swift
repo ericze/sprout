@@ -58,20 +58,6 @@ struct FoodDraftState {
     }
 }
 
-struct MilkDraftState {
-    static let presets = [90, 120, 150, 180]
-
-    var selectedPreset: Int? = nil
-    var customValue: Int = 120
-    var isUsingCustomValue = false
-
-    mutating func reset() {
-        selectedPreset = nil
-        customValue = 120
-        isUsingCustomValue = false
-    }
-}
-
 struct UndoToastState: Equatable {
     let recordID: UUID
     let message: String

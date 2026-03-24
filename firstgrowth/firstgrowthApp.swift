@@ -23,7 +23,29 @@ struct firstgrowthApp: App {
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            clearPersistentStoreFiles()
+
+            do {
+                return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            } catch {
+                fatalError("Could not create ModelContainer: \(error)")
+            }
+        }
+    }
+
+    private static func clearPersistentStoreFiles(fileManager: FileManager = .default) {
+        guard let applicationSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+            return
+        }
+
+        let storeURLs = [
+            applicationSupportURL.appendingPathComponent("default.store"),
+            applicationSupportURL.appendingPathComponent("default.store-wal"),
+            applicationSupportURL.appendingPathComponent("default.store-shm"),
+        ]
+
+        for url in storeURLs where fileManager.fileExists(atPath: url.path) {
+            try? fileManager.removeItem(at: url)
         }
     }
 

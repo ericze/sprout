@@ -18,6 +18,8 @@ struct RecordValidator {
         try validate(
             type: recordType,
             value: record.value,
+            leftNursingSeconds: record.leftNursingSeconds,
+            rightNursingSeconds: record.rightNursingSeconds,
             subType: record.subType,
             tags: record.tags,
             note: record.note,
@@ -28,6 +30,8 @@ struct RecordValidator {
     func validate(
         type: RecordType,
         value: Double?,
+        leftNursingSeconds: Int = 0,
+        rightNursingSeconds: Int = 0,
         subType: String?,
         tags: [String]?,
         note: String?,
@@ -35,7 +39,14 @@ struct RecordValidator {
     ) throws {
         switch type {
         case .milk:
-            guard let value, value > 0 else {
+            let bottleAmount = Int((value ?? 0).rounded(.towardZero))
+            let totalNursingSeconds = max(leftNursingSeconds, 0) + max(rightNursingSeconds, 0)
+
+            guard bottleAmount >= 0, leftNursingSeconds >= 0, rightNursingSeconds >= 0 else {
+                throw RecordValidationError.missingPositiveValue(.milk)
+            }
+
+            guard bottleAmount > 0 || totalNursingSeconds > 0 else {
                 throw RecordValidationError.missingPositiveValue(.milk)
             }
         case .sleep:

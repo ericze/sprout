@@ -8,7 +8,7 @@ final class HomeStore {
     var routeState = HomeRouteState()
     var viewState = HomeViewState()
     var foodDraft = FoodDraftState()
-    var milkDraft = MilkDraftState()
+    var milkDraft = FeedingDraftState()
     var isShowingFoodDiscardConfirmation = false
 
     @ObservationIgnored let headerConfig: HomeHeaderConfig
@@ -105,15 +105,20 @@ extension HomeStore {
             AppHaptics.lightImpact()
         case .dismissSheet:
             dismissActiveSheet()
-        case let .saveMilkPreset(amount):
-            saveMilk(amount: amount)
-        case let .adjustMilkCustom(step):
-            milkDraft.selectedPreset = nil
-            milkDraft.isUsingCustomValue = true
-            milkDraft.customValue = max(10, milkDraft.customValue + step)
-            AppHaptics.softImpact()
-        case .saveCustomMilk:
-            saveMilk(amount: milkDraft.customValue)
+        case let .selectMilkTab(tab):
+            guard milkDraft.selectedTab != tab else { return }
+            milkDraft.selectTab(tab)
+            AppHaptics.selection()
+        case let .tapNursingSide(side):
+            milkDraft.tapNursing(side: side, now: dateProvider())
+            AppHaptics.mediumImpact()
+        case let .selectBottlePreset(amount):
+            milkDraft.selectBottlePreset(amount)
+            AppHaptics.lightImpact()
+        case let .adjustBottleAmount(step):
+            adjustBottleAmount(step)
+        case .saveFeedingRecord:
+            saveFeedingRecord()
         case let .saveDiaper(subtype):
             saveDiaper(subtype: subtype)
         case .finishSleep:
@@ -192,6 +197,9 @@ extension HomeStore {
 
     private func dismissActiveSheet() {
         switch routeState.activeSheet {
+        case .milk:
+            milkDraft.reset()
+            routeState.activeSheet = nil
         case .food:
             requestFoodDismiss()
         default:
@@ -199,17 +207,45 @@ extension HomeStore {
         }
     }
 
-    private func saveMilk(amount: Int) {
+    private func adjustBottleAmount(_ step: Int) {
+        let previousAmount = milkDraft.bottleAmountMl
+        if step > 0 {
+            milkDraft.increaseBottle()
+        } else if step < 0 {
+            milkDraft.decreaseBottle()
+        }
+
+        if milkDraft.bottleAmountMl != previousAmount {
+            AppHaptics.softImpact()
+        }
+    }
+
+    private func saveFeedingRecord() {
         guard let recordRepository else { return }
 
+        let now = dateProvider()
+        milkDraft.pauseActiveSide(now: now)
+
+        let leftSeconds = milkDraft.leftAccumulatedSeconds
+        let rightSeconds = milkDraft.rightAccumulatedSeconds
+        let bottleAmountMl = milkDraft.bottleAmountMl
+
+        guard leftSeconds > 0 || rightSeconds > 0 || bottleAmountMl > 0 else { return }
+
         do {
-            let record = try recordRepository.createMilkRecord(amount: amount, at: dateProvider())
+            let record = try recordRepository.createFeedingRecord(
+                leftSeconds: leftSeconds,
+                rightSeconds: rightSeconds,
+                bottleAmountMl: bottleAmountMl,
+                at: now
+            )
+            let title = formatter.makeDisplayItem(from: record)?.title ?? "喂奶"
             milkDraft.reset()
             routeState.activeSheet = nil
-            integrateCreatedRecord(record, message: "已记录 \(amount)ml")
+            integrateCreatedRecord(record, message: "已记录\(title)")
             AppHaptics.mediumImpact()
         } catch {
-            assertionFailure("Milk save failed: \(error)")
+            assertionFailure("Feeding save failed: \(error)")
         }
     }
 

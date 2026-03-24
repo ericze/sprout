@@ -3,22 +3,94 @@ import XCTest
 
 @MainActor
 final class HomeStoreTests: XCTestCase {
-    func testMilkSaveAndUndo() throws {
+    func testBottleOnlyFeedingSaveAndUndo() throws {
         let environment = try makeTestEnvironment(now: Date(timeIntervalSince1970: 1_710_000_000))
         let store = environment.store
 
         store.handle(.tapMilkEntry)
-        store.handle(.saveMilkPreset(120))
+        store.handle(.selectMilkTab(.bottle))
+        store.handle(.selectBottlePreset(120))
+        store.handle(.saveFeedingRecord)
 
-        XCTAssertEqual(try environment.recordRepository.fetchAllRecords().count, 1)
-        XCTAssertEqual(store.viewState.todayDisplayItems.first?.title, "120ml")
-        XCTAssertEqual(store.viewState.undoToast?.message, "已记录 120ml")
+        let records = try environment.recordRepository.fetchAllRecords()
+
+        XCTAssertEqual(records.count, 1)
+        XCTAssertEqual(records.first?.bottleAmountMl, 120)
+        XCTAssertEqual(records.first?.leftNursingSeconds, 0)
+        XCTAssertEqual(records.first?.rightNursingSeconds, 0)
+        XCTAssertEqual(store.viewState.todayDisplayItems.first?.title, "120ml 瓶喂")
+        XCTAssertEqual(store.viewState.undoToast?.message, "已记录120ml 瓶喂")
 
         store.handle(.undoLastRecord)
 
         XCTAssertTrue(try environment.recordRepository.fetchAllRecords().isEmpty)
         XCTAssertTrue(store.timelineItems.isEmpty)
         XCTAssertNil(store.viewState.undoToast)
+    }
+
+    func testMixedFeedingPersistsAcrossTabsAndSavesAsSingleRecord() throws {
+        let startDate = Date(timeIntervalSince1970: 1_710_000_000)
+        let environment = try makeTestEnvironment(now: startDate)
+        let store = environment.store
+
+        store.handle(.tapMilkEntry)
+        store.handle(.tapNursingSide(.left))
+
+        environment.now.value = startDate.addingTimeInterval(9 * 60)
+        store.handle(.selectMilkTab(.bottle))
+        XCTAssertEqual(store.milkDraft.displayedSeconds(for: .left, now: environment.now.value), 9 * 60)
+
+        environment.now.value = startDate.addingTimeInterval(10 * 60)
+        XCTAssertEqual(store.milkDraft.displayedSeconds(for: .left, now: environment.now.value), 10 * 60)
+
+        store.handle(.selectBottlePreset(60))
+        store.handle(.selectMilkTab(.nursing))
+        store.handle(.tapNursingSide(.right))
+
+        XCTAssertEqual(store.milkDraft.leftAccumulatedSeconds, 10 * 60)
+        XCTAssertEqual(store.milkDraft.activeSide, .right)
+
+        environment.now.value = startDate.addingTimeInterval(15 * 60)
+        store.handle(.saveFeedingRecord)
+
+        let records = try environment.recordRepository.fetchAllRecords()
+        let record = try XCTUnwrap(records.first)
+
+        XCTAssertEqual(records.count, 1)
+        XCTAssertEqual(record.leftNursingSeconds, 10 * 60)
+        XCTAssertEqual(record.rightNursingSeconds, 5 * 60)
+        XCTAssertEqual(record.bottleAmountMl, 60)
+        XCTAssertEqual(store.viewState.todayDisplayItems.first?.title, "亲喂 15分钟 + 60ml 瓶喂")
+        XCTAssertEqual(store.viewState.todayDisplayItems.first?.subtitle, "左 10m · 右 5m")
+        XCTAssertEqual(store.viewState.undoToast?.message, "已记录亲喂 15分钟 + 60ml 瓶喂")
+    }
+
+    func testMilkDismissResetsDraftAndReopensClean() throws {
+        let startDate = Date(timeIntervalSince1970: 1_710_000_000)
+        let environment = try makeTestEnvironment(now: startDate)
+        let store = environment.store
+
+        store.handle(.tapMilkEntry)
+        store.handle(.selectMilkTab(.bottle))
+        store.handle(.selectBottlePreset(90))
+        store.handle(.selectMilkTab(.nursing))
+        store.handle(.tapNursingSide(.left))
+
+        environment.now.value = startDate.addingTimeInterval(2 * 60)
+        store.handle(.dismissSheet)
+
+        XCTAssertNil(store.routeState.activeSheet)
+        XCTAssertEqual(store.milkDraft.selectedTab, .nursing)
+        XCTAssertEqual(store.milkDraft.bottleAmountMl, 0)
+        XCTAssertEqual(store.milkDraft.leftAccumulatedSeconds, 0)
+        XCTAssertEqual(store.milkDraft.rightAccumulatedSeconds, 0)
+        XCTAssertNil(store.milkDraft.activeSide)
+        XCTAssertNil(store.milkDraft.activeStartDate)
+
+        store.handle(.tapMilkEntry)
+        XCTAssertEqual(store.milkDraft.selectedTab, .nursing)
+        XCTAssertEqual(store.milkDraft.bottleAmountMl, 0)
+        XCTAssertEqual(store.milkDraft.leftAccumulatedSeconds, 0)
     }
 
     func testSleepSessionRestoresAndFinishes() throws {
@@ -76,10 +148,10 @@ final class HomeStoreTests: XCTestCase {
         let environment = try makeTestEnvironment(now: referenceDate)
         let repository = environment.recordRepository
 
-        try repository.createMilkRecord(amount: 120, at: referenceDate)
+        try repository.createFeedingRecord(leftSeconds: 0, rightSeconds: 0, bottleAmountMl: 120, at: referenceDate)
         for offset in 1...25 {
             let pastDate = Calendar(identifier: .gregorian).date(byAdding: .day, value: -offset, to: referenceDate)!
-            try repository.createMilkRecord(amount: 90 + offset, at: pastDate)
+            try repository.createFeedingRecord(leftSeconds: 0, rightSeconds: 0, bottleAmountMl: 90 + offset, at: pastDate)
         }
 
         environment.store.onAppear()

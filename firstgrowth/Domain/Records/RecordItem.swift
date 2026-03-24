@@ -7,6 +7,8 @@ final class RecordItem {
     var timestamp: Date
     var type: String
     var value: Double?
+    var leftNursingSeconds: Int
+    var rightNursingSeconds: Int
     var subType: String?
     var imageURL: String?
     var aiSummary: String?
@@ -18,6 +20,8 @@ final class RecordItem {
         timestamp: Date,
         type: String,
         value: Double? = nil,
+        leftNursingSeconds: Int = 0,
+        rightNursingSeconds: Int = 0,
         subType: String? = nil,
         imageURL: String? = nil,
         aiSummary: String? = nil,
@@ -28,6 +32,8 @@ final class RecordItem {
         self.timestamp = timestamp
         self.type = type
         self.value = value
+        self.leftNursingSeconds = leftNursingSeconds
+        self.rightNursingSeconds = rightNursingSeconds
         self.subType = subType
         self.imageURL = imageURL
         self.aiSummary = aiSummary
@@ -39,6 +45,15 @@ final class RecordItem {
 extension RecordItem {
     var recordType: RecordType? {
         RecordType(rawValue: type)
+    }
+
+    var bottleAmountMl: Int {
+        guard let value else { return 0 }
+        return max(Int(value.rounded(.towardZero)), 0)
+    }
+
+    var totalNursingSeconds: Int {
+        max(leftNursingSeconds, 0) + max(rightNursingSeconds, 0)
     }
 
     var diaperType: DiaperSubtype? {

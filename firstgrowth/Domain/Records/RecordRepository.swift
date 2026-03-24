@@ -20,11 +20,13 @@ nonisolated final class RecordRepository {
 
 @MainActor
 extension RecordRepository {
-    func createMilkRecord(amount: Int, at date: Date) throws -> RecordItem {
+    func createFeedingRecord(leftSeconds: Int, rightSeconds: Int, bottleAmountMl: Int, at date: Date) throws -> RecordItem {
         let record = RecordItem(
             timestamp: date,
             type: RecordType.milk.rawValue,
-            value: Double(amount)
+            value: bottleAmountMl > 0 ? Double(bottleAmountMl) : nil,
+            leftNursingSeconds: leftSeconds,
+            rightNursingSeconds: rightSeconds
         )
         try insert(record)
         return record

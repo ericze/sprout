@@ -9,9 +9,11 @@ enum HomeAction {
     case tapFoodEntry
     case tapOngoingSleep
     case dismissSheet
-    case saveMilkPreset(Int)
-    case adjustMilkCustom(Int)
-    case saveCustomMilk
+    case selectMilkTab(MilkTab)
+    case tapNursingSide(NursingSide)
+    case selectBottlePreset(Int)
+    case adjustBottleAmount(Int)
+    case saveFeedingRecord
     case saveDiaper(DiaperSubtype)
     case finishSleep
     case saveFood
