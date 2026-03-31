@@ -1,0 +1,2446 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    " 天": {},
+    "%@%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@%2$@"
+          }
+        }
+      }
+    },
+    "%@的第 ": {},
+    "%lld/%lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$lld/%2$lld"
+          }
+        }
+      }
+    },
+    "%lldml": {},
+    "+记录": {},
+    "⌨️ 手动输入": {},
+    "0.0": {},
+    "AI 客观解读": {},
+    "module.collection.title": {
+      "comment": "Top navigation title for the memories module.",
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memories"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "珍藏"
+          }
+        }
+      }
+    },
+    "module.growth.title": {
+      "comment": "Top navigation title for the growth module.",
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Growth"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成长"
+          }
+        }
+      }
+    },
+    "module.record.title": {
+      "comment": "Top navigation title for the record module.",
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录"
+          }
+        }
+      }
+    },
+    "permissions.camera_usage": {
+      "comment": "Camera permission usage description.",
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used to take photos for records."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用于拍摄记录照片。"
+          }
+        }
+      }
+    },
+    "permissions.photo_library_usage": {
+      "comment": "Photo library permission usage description.",
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used to choose photos from your library for records."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用于从相册选择记录照片。"
+          }
+        }
+      }
+    },
+    "shell.settings.title": {
+      "comment": "Semantic English title for the sidebar settings area.",
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置"
+          }
+        }
+      }
+    },
+    "一句小插曲": {},
+    "一句记下来的话": {},
+    "不弹键盘，只做安静的微调": {},
+    "今天尝了什么？也可以记一句小插曲": {},
+    "今天有什么想记住的吗？": {},
+    "今天还没有记录": {},
+    "从相册选择": {},
+    "保存": {},
+    "先记一笔奶量、尿布、睡眠或辅食，时间线会安静地接住今天。": {},
+    "先记录一条%@数据，趋势会从这里安静地开始。": {},
+    "关闭": {},
+    "关闭撤销提示": {},
+    "再试一次": {},
+    "最多 6 张，按选择顺序排开。": {},
+    "最多可放 6 张": {},
+    "切换到%@": {},
+    "删除当前照片": {},
+    "删除照片": {},
+    "加一张照片（可选）": {},
+    "参考区间": {},
+    "展开解读": {},
+    "开始睡眠记录": {},
+    "当前时长": {},
+    "手动输入是效率兜底，单位固定，不额外增加备注字段。": {},
+    "手帐索引": {},
+    "打开侧边栏": {},
+    "打开这一周的信": {},
+    "折叠解读": {},
+    "拍照": {},
+    "拖动这里穿梭时间": {},
+    "撤销": {},
+    "放弃": {},
+    "放弃这条记录？": {},
+    "放弃这条辅食记录？": {},
+    "新增成长记录": {},
+    "时光信笺": {},
+    "未开始": {},
+    "横向滑动，让数值对齐中央准星": {},
+    "正在睡眠": {},
+    "没有保存成功，请再试一次。": {},
+    "添加照片": {},
+    "照片（可选）": {},
+    "生命线还在等待第一条记录": {},
+    "用于帮助观察整体变化，不用于医学判断": {},
+    "留下一组画面": {},
+    "留住今天": {},
+    "直接输入%@数值": {},
+    "睡眠": {},
+    "睡眠中": {},
+    "睡眠中，长按结束": {},
+    "穿梭时间": {},
+    "第 %@ 天": {},
+    "结束": {},
+    "结束睡眠": {},
+    "继续添加": {},
+    "继续编辑": {},
+    "记为里程碑": {},
+    "轻触当前侧暂停，切换另一侧会自动结算上一侧": {},
+    "返回刻度尺": {},
+    "返回编辑": {},
+    "还没有保存。": {},
+    "这一条记忆最多放 6 张照片。": {},
+    "这一页先作为安静入口，不把首页的留白打断。": {},
+    "这张照片暂时没有加载出来。": {},
+    "进行中": {},
+    "common.baby.placeholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baby"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "宝宝"
+          }
+        }
+      }
+    },
+    "common.close": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
+    "common.done_record": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成记录"
+          }
+        }
+      }
+    },
+    "common.undo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销"
+          }
+        }
+      }
+    },
+    "common.undo.dismiss_accessibility": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss undo notice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭撤销提示"
+          }
+        }
+      }
+    },
+    "home.fab.diaper.accessibility": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log diaper"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录尿布"
+          }
+        }
+      }
+    },
+    "home.fab.diaper.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diaper"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尿布"
+          }
+        }
+      }
+    },
+    "home.fab.feed.accessibility": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log feeding"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录喂奶"
+          }
+        }
+      }
+    },
+    "home.fab.feed.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喂奶"
+          }
+        }
+      }
+    },
+    "home.fab.solids.accessibility": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log solids"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录辅食"
+          }
+        }
+      }
+    },
+    "home.fab.solids.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solids"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "辅食"
+          }
+        }
+      }
+    },
+    "home.header.day.prefix_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@'s day "
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@的第 "
+          }
+        }
+      }
+    },
+    "home.header.day.suffix": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ""
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " 天"
+          }
+        }
+      }
+    },
+    "home.sheet.bottle.adjustment_note": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No keyboard, just quiet adjustments."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不弹键盘，只做安静的微调"
+          }
+        }
+      }
+    },
+    "home.sheet.diaper.both.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log both at once"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一次完成"
+          }
+        }
+      }
+    },
+    "home.sheet.diaper.both.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Both"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "都有"
+          }
+        }
+      }
+    },
+    "home.sheet.diaper.pee.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap once to log"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点一下就记上"
+          }
+        }
+      }
+    },
+    "home.sheet.diaper.pee.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pee"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "小便"
+          }
+        }
+      }
+    },
+    "home.sheet.diaper.poop.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quick log"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "快速留痕"
+          }
+        }
+      }
+    },
+    "home.sheet.diaper.poop.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "大便"
+          }
+        }
+      }
+    },
+    "home.sheet.diaper.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diaper"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记尿布"
+          }
+        }
+      }
+    },
+    "home.sheet.food.common": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Common foods"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "常见食材"
+          }
+        }
+      }
+    },
+    "home.sheet.food.dialog.add_photo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加照片"
+          }
+        }
+      }
+    },
+    "home.sheet.food.dialog.choose_library": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose from library"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从相册选择"
+          }
+        }
+      }
+    },
+    "home.sheet.food.dialog.continue_editing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep editing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续编辑"
+          }
+        }
+      }
+    },
+    "home.sheet.food.dialog.discard": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃"
+          }
+        }
+      }
+    },
+    "home.sheet.food.dialog.discard_title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard this solids record?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃这条辅食记录？"
+          }
+        }
+      }
+    },
+    "home.sheet.food.dialog.take_photo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拍照"
+          }
+        }
+      }
+    },
+    "home.sheet.food.note.placeholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What did they try today? You can also leave a small note."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天尝了什么？也可以记一句小插曲"
+          }
+        }
+      }
+    },
+    "home.sheet.food.note.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A small note"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一句小插曲"
+          }
+        }
+      }
+    },
+    "home.sheet.food.photo.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a photo (optional)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加一张照片（可选）"
+          }
+        }
+      }
+    },
+    "home.sheet.food.photo.delete_accessibility": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除照片"
+          }
+        }
+      }
+    },
+    "home.sheet.food.photo.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo (optional)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片（可选）"
+          }
+        }
+      }
+    },
+    "home.sheet.food.recent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent foods"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近吃过"
+          }
+        }
+      }
+    },
+    "home.sheet.food.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solids"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记辅食"
+          }
+        }
+      }
+    },
+    "home.sheet.milk.detail.bottle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bottle log"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "瓶喂记录"
+          }
+        }
+      }
+    },
+    "home.sheet.milk.detail.nursing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nursing timer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "亲喂计时"
+          }
+        }
+      }
+    },
+    "home.sheet.milk.title.bottle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bottle"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "瓶喂"
+          }
+        }
+      }
+    },
+    "home.sheet.milk.title.nursing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nursing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "亲喂"
+          }
+        }
+      }
+    },
+    "home.sheet.nursing.instruction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap the active side to pause. Switching sides will finish the previous side automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "轻触当前侧暂停，切换另一侧会自动结算上一侧"
+          }
+        }
+      }
+    },
+    "home.sheet.nursing.side.left": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Left"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "左"
+          }
+        }
+      }
+    },
+    "home.sheet.nursing.side.right": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Right"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "右"
+          }
+        }
+      }
+    },
+    "home.sheet.sleep.current_duration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current duration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前时长"
+          }
+        }
+      }
+    },
+    "home.sheet.sleep.end_button": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End sleep"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束睡眠"
+          }
+        }
+      }
+    },
+    "home.sheet.sleep.prefix": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asleep "
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已睡 "
+          }
+        }
+      }
+    },
+    "home.sheet.sleep.start_time": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Started at"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始时间"
+          }
+        }
+      }
+    },
+    "home.sheet.sleep.status": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sleeping now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在睡眠"
+          }
+        }
+      }
+    },
+    "home.sheet.sleep.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sleeping"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠中"
+          }
+        }
+      }
+    },
+    "home.sleep.accessibility.active": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sleeping. Long press to end"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠中，长按结束"
+          }
+        }
+      }
+    },
+    "home.sleep.accessibility.in_progress": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In progress"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进行中"
+          }
+        }
+      }
+    },
+    "home.sleep.accessibility.not_started": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not started"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未开始"
+          }
+        }
+      }
+    },
+    "home.sleep.accessibility.start": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start sleep record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始睡眠记录"
+          }
+        }
+      }
+    },
+    "home.sleep.action.active": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sleeping"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠中"
+          }
+        }
+      }
+    },
+    "home.sleep.action.inactive": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sleep"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠"
+          }
+        }
+      }
+    },
+    "home.sleep.hint.end": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Long press to end"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "长按结束"
+          }
+        }
+      }
+    },
+    "home.sleep.ongoing.end": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束"
+          }
+        }
+      }
+    },
+    "home.sleep.ongoing.end_accessibility": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End sleep"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束睡眠"
+          }
+        }
+      }
+    },
+    "home.sleep.ongoing.prefix": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asleep "
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已睡 "
+          }
+        }
+      }
+    },
+    "home.sleep.ongoing.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sleeping"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠中"
+          }
+        }
+      }
+    },
+    "home.timeline.empty.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start with feeding, diaper, sleep, or solids. The timeline will quietly hold today for you."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先记一笔奶量、尿布、睡眠或辅食，时间线会安静地接住今天。"
+          }
+        }
+      }
+    },
+    "home.timeline.empty.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No records yet today"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天还没有记录"
+          }
+        }
+      }
+    },
+    "shell.sidebar.age.prefix": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Day "
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 "
+          }
+        }
+      }
+    },
+    "shell.sidebar.age.suffix": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ""
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " 天"
+          }
+        }
+      }
+    },
+    "shell.sidebar.birth_date": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Birth date"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "出生日期"
+          }
+        }
+      }
+    },
+    "shell.sidebar.cloud.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Secure data backup"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数据安全备份"
+          }
+        }
+      }
+    },
+    "shell.sidebar.cloud.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cloud Sync"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "云端同步"
+          }
+        }
+      }
+    },
+    "shell.sidebar.footer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A quiet entry for settings, without interrupting the calm of the record page."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一页先作为安静入口，不把首页的留白打断。"
+          }
+        }
+      }
+    },
+    "shell.sidebar.family.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite family to share records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请家人共同记录"
+          }
+        }
+      }
+    },
+    "shell.sidebar.family.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Family Group"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "家庭组"
+          }
+        }
+      }
+    },
+    "shell.sidebar.index.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手帐索引"
+          }
+        }
+      }
+    },
+    "shell.sidebar.note.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A quiet place for settings, profile, and preferences."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关于设置、资料和偏好的安静入口。"
+          }
+        }
+      }
+    },
+    "shell.sidebar.note.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A note"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一句记下来的话"
+          }
+        }
+      }
+    },
+    "shell.sidebar.preferences.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep frequent actions close and tuck lower-frequency details away."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把常用操作放近一点，把低频信息收进去。"
+          }
+        }
+      }
+    },
+    "shell.sidebar.preferences.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording preferences"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录偏好"
+          }
+        }
+      }
+    },
+    "shell.sidebar.profile.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Core details that return across the timeline, like name and birthday."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会回到时间线里的基础信息，比如名字和生日。"
+          }
+        }
+      }
+    },
+    "shell.sidebar.profile.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baby profile"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "宝宝资料"
+          }
+        }
+      }
+    },
+    "shell.sidebar.reminders.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A future place for reminders, syncing, and gentler system preferences."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后续可以放提醒、同步和更轻一点的系统偏好。"
+          }
+        }
+      }
+    },
+    "shell.sidebar.reminders.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet reminders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安静提醒"
+          }
+        }
+      }
+    },
+    "shell.topbar.open_sidebar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开设置"
+          }
+        }
+      }
+    },
+    "shell.topbar.switch_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch to %1$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切换到%1$@"
+          }
+        }
+      }
+    },
+    "common.relative.today": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天"
+          }
+        }
+      }
+    },
+    "common.relative.days_ago_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ago"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@前"
+          }
+        }
+      }
+    },
+    "common.relative.months_ago_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ago"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@前"
+          }
+        }
+      }
+    },
+    "common.relative.years_ago_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ago"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@前"
+          }
+        }
+      }
+    },
+    "unit.milliliter.short": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mL"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ml"
+          }
+        }
+      }
+    },
+    "unit.centimeter.short": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "cm"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "cm"
+          }
+        }
+      }
+    },
+    "unit.kilogram.short": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kg"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kg"
+          }
+        }
+      }
+    },
+    "timeline.milk.mixed_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nursing %1$@ + %2$@ bottle"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "亲喂 %1$@ + %2$@ 瓶喂"
+          }
+        }
+      }
+    },
+    "timeline.milk.nursing_only_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nursing %1$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "亲喂 %1$@"
+          }
+        }
+      }
+    },
+    "timeline.milk.bottle_only_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ bottle"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 瓶喂"
+          }
+        }
+      }
+    },
+    "timeline.milk.default_title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feeding"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "喂奶"
+          }
+        }
+      }
+    },
+    "timeline.milk.side_subtitle_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Left %1$@ · Right %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "左 %1$@ · 右 %2$@"
+          }
+        }
+      }
+    },
+    "timeline.diaper.default_title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diaper"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尿布"
+          }
+        }
+      }
+    },
+    "timeline.diaper.pee": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diaper: Pee"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尿布：小便"
+          }
+        }
+      }
+    },
+    "timeline.diaper.poop": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diaper: Poop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尿布：大便"
+          }
+        }
+      }
+    },
+    "timeline.diaper.both": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diaper: Both"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尿布：都有"
+          }
+        }
+      }
+    },
+    "timeline.sleep.default_title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sleep"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠"
+          }
+        }
+      }
+    },
+    "timeline.sleep.duration_title_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slept %1$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡了 %1$@"
+          }
+        }
+      }
+    },
+    "timeline.food.tags_only_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ate %1$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "吃了%1$@"
+          }
+        }
+      }
+    },
+    "timeline.food.tags_and_note_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@"
+          }
+        }
+      }
+    },
+    "timeline.food.default_title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solids"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "辅食"
+          }
+        }
+      }
+    },
+    "home.sheet.milk.submit.mixed_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record %1$@ nursing + %2$@ bottle"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录 %1$@ 亲喂 + %2$@ 瓶喂"
+          }
+        }
+      }
+    },
+    "home.sheet.milk.submit.nursing_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record %1$@ nursing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录 %1$@ 亲喂"
+          }
+        }
+      }
+    },
+    "home.sheet.milk.submit.bottle_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record %1$@ bottle"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录 %1$@ 瓶喂"
+          }
+        }
+      }
+    },
+    "home.sheet.milk.submit.default": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成记录"
+          }
+        }
+      }
+    },
+    "home.undo.saved_record_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved %1$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已记录%1$@"
+          }
+        }
+      }
+    },
+    "home.undo.ended_sleep": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ended sleep"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已结束睡眠"
+          }
+        }
+      }
+    },
+    "home.undo.saved_food": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved solids"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已记录一顿辅食"
+          }
+        }
+      }
+    },
+    "growth.metric.height.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Height"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身高"
+          }
+        }
+      }
+    },
+    "growth.metric.weight.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weight"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "体重"
+          }
+        }
+      }
+    },
+    "growth.metric.height.entry_title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record height"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录身高"
+          }
+        }
+      }
+    },
+    "growth.metric.weight.entry_title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record weight"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录体重"
+          }
+        }
+      }
+    },
+    "growth.metric.height.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No height records yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有身高记录"
+          }
+        }
+      }
+    },
+    "growth.metric.weight.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No weight records yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有体重记录"
+          }
+        }
+      }
+    },
+    "growth.meta.latest_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest record: %1$@ · %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最新记录：%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "growth.ai.waiting_first_record_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for the first %1$@ record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✨ 等待第一条%1$@记录"
+          }
+        }
+      }
+    },
+    "growth.ai.invite_first_record_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record the first %1$@ entry. The line can begin from here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✨ 记录第一条%1$@数据，生命线会从这里开始。"
+          }
+        }
+      }
+    },
+    "growth.ai.first_record_logged_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logged the first %1$@ record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✨ 已记录第一条%1$@数据"
+          }
+        }
+      }
+    },
+    "growth.ai.change_unchanged_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compared with %1$@ ago, %2$@ stayed the same."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "距离上次记录过去了 %1$@，%2$@与上次持平。"
+          }
+        }
+      }
+    },
+    "growth.ai.change_increased_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compared with %1$@ ago, %2$@ increased by %3$@."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "距离上次记录过去了 %1$@，%2$@增加了 %3$@。"
+          }
+        }
+      }
+    },
+    "growth.ai.change_decreased_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compared with %1$@ ago, %2$@ decreased by %3$@."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "距离上次记录过去了 %1$@，%2$@较上次减少了 %3$@。"
+          }
+        }
+      }
+    },
+    "growth.ai.collapsed_change_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logged a change since %1$@ ago"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✨ 记录了距上次%1$@的变化"
+          }
+        }
+      }
+    },
+    "growth.undo.saved_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved %1$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已记录%1$@"
+          }
+        }
+      }
+    },
+    "growth.error.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Growth data is unavailable right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成长数据暂不可用"
+          }
+        }
+      }
+    },
+    "growth.error.load_failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to load growth data"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成长数据加载失败"
+          }
+        }
+      }
+    },
+    "growth.chart.reference_title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reference range"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参考区间"
+          }
+        }
+      }
+    },
+    "growth.chart.reference_note": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For observing overall changes only. Not for medical judgment."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用于帮助观察整体变化，不用于医学判断"
+          }
+        }
+      }
+    },
+    "growth.chart.empty.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The line is waiting for its first record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生命线还在等待第一条记录"
+          }
+        }
+      }
+    },
+    "growth.chart.empty.body_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start with one %1$@ record. The trend can begin quietly from here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先记录一条%1$@数据，趋势会从这里安静地开始。"
+          }
+        }
+      }
+    },
+    "growth.ai.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Notes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 客观解读"
+          }
+        }
+      }
+    },
+    "growth.ai.collapse": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapse note"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "折叠解读"
+          }
+        }
+      }
+    },
+    "growth.ai.expand": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expand note"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "展开解读"
+          }
+        }
+      }
+    },
+    "growth.entry.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+Record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+记录"
+          }
+        }
+      }
+    },
+    "growth.entry.add_accessibility": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add growth record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增成长记录"
+          }
+        }
+      }
+    },
+    "growth.ruler.instruction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swipe horizontally to align the value with the center marker."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "横向滑动，让数值对齐中央准星"
+          }
+        }
+      }
+    },
+    "growth.ruler.manual_input": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manual Input"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌨️ 手动输入"
+          }
+        }
+      }
+    },
+    "growth.manual.back_to_ruler": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to ruler"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回刻度尺"
+          }
+        }
+      }
+    },
+    "growth.manual.prompt_format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the %1$@ value directly"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直接输入%1$@数值"
+          }
+        }
+      }
+    },
+    "growth.manual.placeholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0.0"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0.0"
+          }
+        }
+      }
+    },
+    "growth.manual.note": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manual input is a fallback for speed. Units stay fixed, without extra note fields."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手动输入是效率兜底，单位固定，不额外增加备注字段。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
