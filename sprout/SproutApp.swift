@@ -11,6 +11,7 @@ import SwiftData
 @main
 struct SproutApp: App {
     private let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
     private static func makeSharedModelContainer() -> ModelContainer {
         let schema = Schema([
@@ -54,6 +55,8 @@ struct SproutApp: App {
         WindowGroup {
             if isRunningTests {
                 TestHostView()
+            } else if !hasCompletedOnboarding {
+                OnboardingView()
             } else {
                 ContentView()
             }

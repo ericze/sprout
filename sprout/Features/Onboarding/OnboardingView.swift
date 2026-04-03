@@ -29,6 +29,12 @@ struct OnboardingView: View {
         }
         .animation(.easeInOut(duration: 0.8), value: currentStep)
         .onAppear {
+            let repo = BabyRepository(modelContext: modelContext)
+            OnboardingMigration.migrateIfNeeded(
+                babyRepository: repo,
+                defaults: UserDefaults.standard
+            )
+
             withAnimation(.easeInOut(duration: 0.8)) {
                 appeared = true
             }
