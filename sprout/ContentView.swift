@@ -3,9 +3,10 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var store = HomeStore(headerConfig: .placeholder)
-    @State private var growthStore = GrowthStore(headerConfig: .placeholder)
-    @State private var treasureStore = TreasureStore(headerConfig: .placeholder)
+    @State private var activeBabyState = ActiveBabyState()
+    @State private var store: HomeStore? = nil
+    @State private var growthStore: GrowthStore? = nil
+    @State private var treasureStore: TreasureStore? = nil
     @State private var babyRepository: BabyRepository? = nil
     @State private var hasBootstrapped = false
     private let launchOverrides = AppLaunchOverrides.current
@@ -15,49 +16,60 @@ struct ContentView: View {
             AppTheme.Colors.background
                 .ignoresSafeArea()
 
-            if let babyRepository {
+            if let store, let growthStore, let treasureStore, let babyRepository {
                 AppShellView(
                     babyRepository: babyRepository,
                     store: store,
                     growthStore: growthStore,
                     treasureStore: treasureStore,
+                    activeBabyState: activeBabyState,
                     initialTab: launchOverrides.initialModule ?? .record
                 )
             }
+        }
+        .onChange(of: activeBabyState.headerConfig) { _, newConfig in
+            store?.updateHeaderConfig(newConfig)
+            growthStore?.updateHeaderConfig(newConfig)
+            growthStore?.refreshAfterProfileChange()
+            treasureStore?.updateHeaderConfig(newConfig)
         }
         .task {
             guard !hasBootstrapped else { return }
             hasBootstrapped = true
 
-            let repo = BabyRepository(modelContext: modelContext)
+            let repo = BabyRepository(modelContext: modelContext, activeBabyState: activeBabyState)
             repo.createDefaultIfNeeded()
 
             let headerConfig = HomeHeaderConfig.from(repo.activeBaby)
+            activeBabyState.headerConfig = headerConfig
             launchOverrides.applyIfNeeded(modelContext: modelContext, headerConfig: headerConfig)
 
-            store.configure(modelContext: modelContext)
-            growthStore.configure(modelContext: modelContext)
-            treasureStore.configure(modelContext: modelContext)
+            let homeStore = HomeStore(headerConfig: headerConfig)
+            let growth = GrowthStore(headerConfig: headerConfig)
+            let treasure = TreasureStore(headerConfig: headerConfig)
 
-            store.updateHeaderConfig(headerConfig)
-            growthStore.updateHeaderConfig(headerConfig)
-            treasureStore.updateHeaderConfig(headerConfig)
+            homeStore.configure(modelContext: modelContext)
+            growth.configure(modelContext: modelContext)
+            treasure.configure(modelContext: modelContext)
 
-            store.onAppear()
-            growthStore.onAppear()
-            treasureStore.onAppear()
+            homeStore.onAppear()
+            growth.onAppear()
+            treasure.onAppear()
 
             if let initialGrowthMetric = launchOverrides.initialGrowthMetric {
-                growthStore.handle(.selectMetric(initialGrowthMetric))
+                growth.handle(.selectMetric(initialGrowthMetric))
             }
 
             if launchOverrides.opensGrowthEntry {
-                growthStore.handle(.tapEntry)
+                growth.handle(.tapEntry)
                 if launchOverrides.growthEntryMode == .manual {
-                    growthStore.handle(.switchToManualInput)
+                    growth.handle(.switchToManualInput)
                 }
             }
 
+            store = homeStore
+            growthStore = growth
+            treasureStore = treasure
             babyRepository = repo
         }
     }

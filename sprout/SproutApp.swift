@@ -13,57 +13,107 @@ struct SproutApp: App {
     private let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
-    private static func makeSharedModelContainer() -> ModelContainer {
-        let schema = Schema([
-            RecordItem.self,
-            MemoryEntry.self,
-            WeeklyLetter.self,
-            BabyProfile.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            clearPersistentStoreFiles()
-
-            do {
-                return try ModelContainer(for: schema, configurations: [modelConfiguration])
-            } catch {
-                fatalError("Could not create ModelContainer: \(error)")
-            }
-        }
-    }
-
-    private static func clearPersistentStoreFiles(fileManager: FileManager = .default) {
-        guard let applicationSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
-            return
-        }
-
-        let storeURLs = [
-            applicationSupportURL.appendingPathComponent("default.store"),
-            applicationSupportURL.appendingPathComponent("default.store-wal"),
-            applicationSupportURL.appendingPathComponent("default.store-shm"),
-        ]
-
-        for url in storeURLs where fileManager.fileExists(atPath: url.path) {
-            try? fileManager.removeItem(at: url)
-        }
-    }
-
     var body: some Scene {
         WindowGroup {
             if isRunningTests {
                 TestHostView()
-            } else if !hasCompletedOnboarding {
+            } else {
+                switch AppState.current.containerResult {
+                case .success(let container):
+                    AppRootView(
+                        container: container,
+                        hasCompletedOnboarding: hasCompletedOnboarding
+                    )
+                case .failure(let errorMessage):
+                    AppStartupErrorView(errorMessage: errorMessage)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Locale Environment Helper
+
+/// Convenience modifier that forces the SwiftUI environment locale
+/// to match `AppLanguageManager.shared.language`.  Applied at the root
+/// so that all views inherit the correct locale without wrapping
+/// individual sheets / pages.
+struct AppLocaleModifier: ViewModifier {
+    private let languageManager = AppLanguageManager.shared
+
+    func body(content: Content) -> some View {
+        content
+            .environment(\.locale, languageManager.language.locale)
+            .id(languageManager.languageVersion)
+    }
+}
+
+extension View {
+    func appLocaleAware() -> some View {
+        modifier(AppLocaleModifier())
+    }
+}
+
+// MARK: - App Root View
+
+struct AppRootView: View {
+    let container: ModelContainer
+    let hasCompletedOnboarding: Bool
+
+    var body: some View {
+        Group {
+            if !hasCompletedOnboarding {
                 OnboardingView()
             } else {
                 ContentView()
             }
         }
-        .modelContainer(Self.makeSharedModelContainer())
+        .modelContainer(container)
+        .appLocaleAware()
     }
 }
+
+// MARK: - App State
+
+enum AppState {
+    enum ContainerResult {
+        case success(ModelContainer)
+        case failure(String)
+    }
+
+    static let current = AppState()
+
+    let containerResult: ContainerResult
+
+    private init() {
+        containerResult = Self.makeContainerResult()
+    }
+
+    static func makeContainerResult(
+        schema: Schema? = nil,
+        modelConfiguration: ModelConfiguration? = nil
+    ) -> ContainerResult {
+        let resolvedSchema = schema ?? Schema([
+            RecordItem.self,
+            MemoryEntry.self,
+            WeeklyLetter.self,
+            BabyProfile.self,
+        ])
+        let resolvedConfiguration = modelConfiguration ?? ModelConfiguration(
+            schema: resolvedSchema,
+            isStoredInMemoryOnly: false
+        )
+
+        do {
+            let container = try ModelContainer(for: resolvedSchema, configurations: [resolvedConfiguration])
+            return .success(container)
+        } catch {
+            return .failure(error.localizedDescription)
+        }
+    }
+}
+
+// MARK: - Test Host
 
 private struct TestHostView: View {
     var body: some View {

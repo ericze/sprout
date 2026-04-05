@@ -53,6 +53,9 @@ struct OnboardingView: View {
     }
 
     private func completeOnboarding() {
+        let repo = BabyRepository(modelContext: modelContext)
+        repo.markOnboardingCompleted()
+
         withAnimation(.easeInOut(duration: 0.6)) {
             hasCompletedOnboarding = true
         }

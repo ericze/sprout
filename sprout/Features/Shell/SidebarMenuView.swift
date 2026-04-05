@@ -1,10 +1,10 @@
+import Foundation
 import SwiftUI
 
 struct SidebarMenuView: View {
     let headerConfig: HomeHeaderConfig
     let onHeaderTap: () -> Void
     let onNavigate: (SidebarRoute) -> Void
-    let onProItemTap: (SidebarIndexItem) -> Void
 
     private let calendar = Calendar.current
 
@@ -52,8 +52,26 @@ struct SidebarMenuView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
-                    sidebarMetaRow(title: String(localized: "shell.sidebar.birth_date"), value: birthDateText)
-                    sidebarMetaRow(title: String(localized: "shell.sidebar.note.title"), value: String(localized: "shell.sidebar.note.body"))
+                    sidebarMetaRow(
+                        title: L10n.text(
+                            "shell.sidebar.birth_date",
+                            en: "Birth date",
+                            zh: "\u{51fa}\u{751f}\u65e5\u671f"
+                        ),
+                        value: birthDateText
+                    )
+                    sidebarMetaRow(
+                        title: L10n.text(
+                            "shell.sidebar.note.title",
+                            en: "A note",
+                            zh: "\u{4e00}\u6761\u8bb0\u4e0b\u6765\u7684\u8bdd"
+                        ),
+                        value: L10n.text(
+                            "shell.sidebar.note.body",
+                            en: "A quiet place for settings, profile, and preferences.",
+                            zh: "\u{5b89}\u9759\u6536\u7eb3\u8bbe\u7f6e\u3001\u8d44\u6599\u548c\u504f\u597d\u3002"
+                        )
+                    )
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -67,21 +85,25 @@ struct SidebarMenuView: View {
     }
 
     private var indexCard: some View {
+        let items = SidebarIndexItem.items
+
         VStack(alignment: .leading, spacing: 0) {
-            Text(String(localized: "shell.sidebar.index.title"))
+            Text(
+                L10n.text(
+                    "shell.sidebar.index.title",
+                    en: "Settings",
+                    zh: "\u{8bbe}\u7f6e"
+                )
+            )
                 .font(.system(size: 12, weight: .medium))
                 .tracking(0.6)
                 .foregroundStyle(AppTheme.Colors.secondaryText)
                 .padding(.bottom, 12)
 
-            ForEach(SidebarIndexItem.items) { item in
+            ForEach(items) { item in
                 Button(action: {
                     AppHaptics.selection()
-                    if item.isPro {
-                        onProItemTap(item)
-                    } else if let route = item.route {
-                        onNavigate(route)
-                    }
+                    onNavigate(item.route)
                 }) {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(item.title)
@@ -99,7 +121,7 @@ struct SidebarMenuView: View {
                 }
                 .buttonStyle(.plain)
 
-                if item.id != SidebarIndexItem.items.last?.id {
+                if item.id != items.last?.id {
                     Divider()
                         .overlay(AppTheme.Colors.divider)
                 }
@@ -113,7 +135,13 @@ struct SidebarMenuView: View {
     }
 
     private var footerNote: some View {
-        Text(String(localized: "shell.sidebar.footer"))
+        Text(
+            L10n.text(
+                "shell.sidebar.footer",
+                en: "A quiet entry for settings, without interrupting the calm of the record page.",
+                zh: "\u{5b89}\u9759\u5730\u6536\u8d77\u8bbe\u7f6e\uff0c\u4e0d\u6253\u65ad\u8bb0\u5f55\u9875\u7684\u5e73\u9759\u3002"
+            )
+        )
             .font(AppTheme.Typography.meta)
             .foregroundStyle(AppTheme.Colors.tertiaryText)
             .fixedSize(horizontal: false, vertical: true)
@@ -146,15 +174,15 @@ struct SidebarMenuView: View {
     }
 
     private var birthDateText: String {
-        headerConfig.birthDate.formatted(
-            .dateTime
-                .year()
-                .month(.wide)
-                .day()
-        )
+        let formatter = DateFormatter()
+        formatter.locale = LocalizationService.current.locale
+        formatter.setLocalizedDateFormatFromTemplate("yMMMMd")
+        return formatter.string(from: headerConfig.birthDate)
     }
 
     private var sidebarAgeText: String {
-        "\(String(localized: "shell.sidebar.age.prefix"))\(ageInDays.formatted())\(String(localized: "shell.sidebar.age.suffix"))"
+        let prefix = L10n.text("shell.sidebar.age.prefix", en: "Day ", zh: "\u{7b2c}")
+        let suffix = L10n.text("shell.sidebar.age.suffix", en: "", zh: "\u{5929}")
+        return "\(prefix)\(ageInDays)\(suffix)"
     }
 }

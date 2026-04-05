@@ -2,13 +2,18 @@ import Foundation
 
 struct WeeklyLetterComposer {
     private let calendar: Calendar
+    private let language: AppLanguage
     private let bannedTerms = [
         "击败", "超越", "落后", "领先", "优秀", "达标", "偏瘦", "偏胖",
-        "健康", "发育", "奖励", "解锁", "成就", "荣耀", "任务完成"
+        "健康", "发育", "奖励", "解锁", "成就", "荣耀", "任务完成",
+        "beat", "exceed", "behind", "ahead", "excellent", "goal", "underweight",
+        "overweight", "healthy", "development", "reward", "unlock", "achievement",
+        "glory", "mission complete",
     ]
 
-    init(calendar: Calendar = .current) {
+    init(calendar: Calendar = .current, language: AppLanguage = LocalizationService.current.language) {
         self.calendar = calendar
+        self.language = language
     }
 
     func compose(
@@ -61,13 +66,25 @@ struct WeeklyLetterComposer {
     }
 
     private func makeCollapsedText(for density: WeeklyLetterDensity) -> String {
-        switch density {
-        case .silent:
-            "这一周，被轻轻收下了。"
-        case .normal:
-            "时间寄来了一封这周的信。"
-        case .dense:
-            "这一周，留了一封更厚一点的信。"
+        switch language {
+        case .english:
+            switch density {
+            case .silent:
+                return "A quiet week."
+            case .normal:
+                return "A letter arrived for this week."
+            case .dense:
+                return "A thicker letter arrived this week."
+            }
+        case .simplifiedChinese:
+            switch density {
+            case .silent:
+                return "这一周很安静。"
+            case .normal:
+                return "时间寄来了一封这一周的信。"
+            case .dense:
+                return "这一周留下了一封更厚一点的信。"
+            }
         }
     }
 
@@ -83,30 +100,96 @@ struct WeeklyLetterComposer {
             .first?
             .prefix(18) ?? ""
 
+        switch language {
+        case .english:
+            return makeEnglishExpandedText(
+                density: density,
+                entries: entries,
+                photoCount: photoCount,
+                textCount: textCount,
+                milestoneCount: milestoneCount,
+                firstNoteSnippet: firstNoteSnippet
+            )
+        case .simplifiedChinese:
+            return makeChineseExpandedText(
+                density: density,
+                entries: entries,
+                photoCount: photoCount,
+                textCount: textCount,
+                milestoneCount: milestoneCount,
+                firstNoteSnippet: firstNoteSnippet
+            )
+        }
+    }
+
+    private func makeEnglishExpandedText(
+        density: WeeklyLetterDensity,
+        entries: [MemoryEntry],
+        photoCount: Int,
+        textCount: Int,
+        milestoneCount: Int,
+        firstNoteSnippet: String
+    ) -> String {
         switch density {
         case .silent:
-            return "这一周只留下了一条记忆，日子照常往前。"
+            return "One memory, quietly kept."
         case .normal:
-            var segments = ["这一周留下了\(entries.count)条记忆"]
+            var parts = ["\(entries.count) memories this week"]
             if photoCount > 0 {
-                segments.append("\(photoCount)张照片")
+                parts.append("\(photoCount) photo\(photoCount == 1 ? "" : "s")")
             }
             if textCount > 0 {
-                segments.append("\(textCount)段文字")
+                parts.append("\(textCount) note\(textCount == 1 ? "" : "s")")
             }
-
-            let joined = segments.joined(separator: "、")
-            return "\(joined)。几件小事被安静地留下，时间也在这些片刻里慢慢往前。"
+            let joined = parts.joined(separator: ", ")
+            return "\(joined). Small moments stayed here, gently and without hurry."
         case .dense:
-            var prefix = "这一周留下的内容比平时多一些。"
+            var header = "More than usual this week."
             if milestoneCount > 0 {
-                prefix += "其中有\(milestoneCount)个被轻轻打上了星号。"
+                header += " \(milestoneCount) star\(milestoneCount == 1 ? "" : "s") were gently marked."
             }
-
-            let middle = "照片和文字把这一页写得更厚了一点，\(entries.count)条记忆围着这周慢慢排开。"
+            let body = "\(entries.count) memories spread across the week, with \(photoCount) photo\(photoCount == 1 ? "" : "s") and \(textCount) note\(textCount == 1 ? "" : "s") tucked in."
             let ending: String
             if firstNoteSnippet.isEmpty {
-                ending = "它们不需要被宣布，只要在翻到这里时，再被看见一次。"
+                ending = "They can stay quiet and still be kept."
+            } else {
+                ending = "A moment like \"\(firstNoteSnippet)\" stays safely here."
+            }
+            return "\(header) \(body) \(ending)"
+        }
+    }
+
+    private func makeChineseExpandedText(
+        density: WeeklyLetterDensity,
+        entries: [MemoryEntry],
+        photoCount: Int,
+        textCount: Int,
+        milestoneCount: Int,
+        firstNoteSnippet: String
+    ) -> String {
+        switch density {
+        case .silent:
+            return "这一周只留下一条记忆，安静收好。"
+        case .normal:
+            var segments = ["这一周留下了 \(entries.count) 条记忆"]
+            if photoCount > 0 {
+                segments.append("\(photoCount) 张照片")
+            }
+            if textCount > 0 {
+                segments.append("\(textCount) 段文字")
+            }
+            let joined = segments.joined(separator: "，")
+            return "\(joined)。几件小事安静地留了下来，时间也在这些片刻里慢慢往前。"
+        case .dense:
+            var prefix = "这一周比平时更满一些。"
+            if milestoneCount > 0 {
+                prefix += " 其中有 \(milestoneCount) 个小小的星标。"
+            }
+
+            let middle = "照片和文字让这一页更厚了一点，\(entries.count) 条记忆慢慢铺开。"
+            let ending: String
+            if firstNoteSnippet.isEmpty {
+                ending = "它们不需要被张扬，只要在翻到这里时能被重新看见。"
             } else {
                 ending = "像“\(firstNoteSnippet)”这样的片刻，也被稳稳留了下来。"
             }
@@ -120,7 +203,7 @@ struct WeeklyLetterComposer {
 
         let maxLength: Int
         if isCollapsed {
-            maxLength = density == .silent ? 30 : 18
+            maxLength = language == .english ? 40 : 30
         } else {
             switch density {
             case .silent:

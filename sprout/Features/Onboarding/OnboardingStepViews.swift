@@ -1,6 +1,5 @@
 import SwiftUI
 import Photos
-import UserNotifications
 
 struct OnboardingIdentityStep: View {
     @Binding var draft: OnboardingDraft
@@ -65,40 +64,12 @@ struct OnboardingIdentityStep: View {
     }
 }
 
-// MARK: - Step 2: 软性权限请求
+// MARK: - Step 2: 软性权限请求（V1 仅相册）
 
 struct OnboardingPermissionsStep: View {
-    enum PermissionPhase {
-        case photo
-        case notification
-    }
-
-    @State private var phase: PermissionPhase = .photo
     let onComplete: () -> Void
 
     var body: some View {
-        ZStack {
-            if phase == .photo {
-                photoPhase
-                    .transition(transitionStyle)
-            } else {
-                notificationPhase
-                    .transition(transitionStyle)
-            }
-        }
-        .animation(.easeInOut(duration: 0.8), value: phase)
-    }
-
-    private var transitionStyle: AnyTransition {
-        .asymmetric(
-            insertion: .opacity.combined(with: .offset(y: 10)),
-            removal: .opacity.combined(with: .offset(y: -10))
-        )
-    }
-
-    // MARK: - 相册权限
-
-    private var photoPhase: some View {
         VStack(spacing: 0) {
             Spacer().frame(height: 160)
 
@@ -133,55 +104,6 @@ struct OnboardingPermissionsStep: View {
             Spacer().frame(height: 16)
 
             Button {
-                advanceToNotification()
-            } label: {
-                Text(L10n.text("onboarding.skip", en: "Maybe Later", zh: "以后再说"))
-                    .font(.system(size: 12))
-                    .foregroundStyle(AppTheme.Colors.tertiaryText)
-            }
-
-            Spacer()
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    // MARK: - 通知权限
-
-    private var notificationPhase: some View {
-        VStack(spacing: 0) {
-            Spacer().frame(height: 160)
-
-            Image(systemName: "bell.fill")
-                .font(.system(size: 36))
-                .foregroundStyle(AppTheme.Colors.primaryText)
-
-            Spacer().frame(height: 32)
-
-            Text(L10n.text("onboarding.notif_title", en: "Gentle Companion", zh: "不打扰的陪伴"))
-                .font(.system(size: 22, design: .serif))
-                .foregroundStyle(AppTheme.Colors.primaryText)
-
-            Spacer().frame(height: 12)
-
-            Text(L10n.text("onboarding.notif_subtitle", en: "We'll only nudge you when you haven't logged in a while.", zh: "只有在久未记录时，才会轻轻提醒你。"))
-                .font(.system(size: 14))
-                .foregroundStyle(AppTheme.Colors.secondaryText)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 48)
-
-            Spacer().frame(height: 36)
-
-            Button {
-                requestNotificationAccess()
-            } label: {
-                Text(L10n.text("onboarding.notif_enable", en: "Enable Reminders", zh: "开启提醒"))
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(AppTheme.Colors.sageGreen)
-            }
-
-            Spacer().frame(height: 16)
-
-            Button {
                 onComplete()
             } label: {
                 Text(L10n.text("onboarding.skip", en: "Maybe Later", zh: "以后再说"))
@@ -199,18 +121,7 @@ struct OnboardingPermissionsStep: View {
     private func requestPhotoAccess() {
         Task {
             _ = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
-            advanceToNotification()
-        }
-    }
-
-    private func requestNotificationAccess() {
-        Task {
-            _ = try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound])
             onComplete()
         }
-    }
-
-    private func advanceToNotification() {
-        phase = .notification
     }
 }

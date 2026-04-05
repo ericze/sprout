@@ -19,22 +19,37 @@ struct LocalizationService {
     let defaultLanguage: AppLanguage
     let defaultTable: String?
 
+    /// When `overrideLanguage` is set, `LocalizationService()` with no
+    /// arguments resolves to that language instead of the device locale.
+    /// This is written by `AppLanguageManager` whenever the user switches
+    /// language in-app.
+    static var overrideLanguage: AppLanguage?
+
     static var current: LocalizationService {
-        LocalizationService()
+        if let override = overrideLanguage {
+            return LocalizationService(language: override)
+        }
+        return LocalizationService()
     }
 
     init(
         bundle: Bundle = .main,
-        locale: Locale = .autoupdatingCurrent,
+        locale: Locale? = nil,
         language: AppLanguage? = nil,
         defaultLanguage: AppLanguage = .fallback,
         defaultTable: String? = nil
     ) {
+        let resolvedLanguage = language ?? Self.overrideLanguage ?? AppLanguage(locale: locale ?? .autoupdatingCurrent)
         self.bundle = bundle
-        self.locale = locale
-        self.language = language ?? AppLanguage(locale: locale)
+        self.locale = locale ?? resolvedLanguage.locale
+        self.language = resolvedLanguage
         self.defaultLanguage = defaultLanguage
         self.defaultTable = defaultTable
+    }
+
+    /// Called by `AppLanguageManager` when the user picks a new language.
+    static func override(language: AppLanguage) {
+        overrideLanguage = language
     }
 
     func string(_ key: LocalizationKey) -> String {

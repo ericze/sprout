@@ -2,9 +2,14 @@ import Foundation
 
 struct TreasureMonthAnchorBuilder {
     private let calendar: Calendar
+    private let localizationService: LocalizationService
 
-    init(calendar: Calendar = .current) {
+    init(
+        calendar: Calendar = .current,
+        localizationService: LocalizationService = .current
+    ) {
         self.calendar = calendar
+        self.localizationService = localizationService
     }
 
     func build(from items: [TreasureTimelineItem]) -> [TreasureMonthAnchor] {
@@ -28,9 +33,18 @@ struct TreasureMonthAnchorBuilder {
     }
 
     private func displayText(for date: Date) -> String {
-        let components = calendar.dateComponents([.year, .month], from: date)
-        let year = components.year ?? 0
-        let month = components.month ?? 0
-        return "\(year) · \(month)月"
+        let formatter = DateFormatter()
+        formatter.locale = localizationService.locale
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+
+        switch localizationService.language {
+        case .english:
+            formatter.dateFormat = "MMMM yyyy"
+        case .simplifiedChinese:
+            formatter.dateFormat = "yyyy年M月"
+        }
+
+        return formatter.string(from: date)
     }
 }

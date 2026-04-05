@@ -71,6 +71,11 @@ extension GrowthStore {
         headerConfig = config
     }
 
+    func refreshAfterProfileChange() {
+        guard viewState.hasLoadedInitialData else { return }
+        refreshCurrentMetric()
+    }
+
     func onAppear() {
         handle(.onAppear)
     }

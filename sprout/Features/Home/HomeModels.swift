@@ -74,7 +74,7 @@ struct HomeHeaderConfig: Equatable {
     var birthDate: Date
 
     static let placeholder = HomeHeaderConfig(
-        babyName: String(localized: "common.baby.placeholder"),
+        babyName: L10n.text("common.baby.placeholder", en: "Baby", zh: "宝宝"),
         birthDate: Calendar.current.date(byAdding: .day, value: -128, to: .now) ?? .now
     )
 

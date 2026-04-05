@@ -1,7 +1,133 @@
+import Foundation
 import Observation
 import PhotosUI
 import SwiftUI
 import UIKit
+
+enum TreasureComposeCopy {
+    static func title(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.title", service: service, en: "Keep Today", zh: "Keep Today")
+    }
+
+    static func close(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.close", service: service, en: "Close", zh: "Close")
+    }
+
+    static func save(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.save", service: service, en: "Save", zh: "Save")
+    }
+
+    static func photoSourceTitle(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.photo_source.title", service: service, en: "Add a photo", zh: "Add a photo")
+    }
+
+    static func photoSourceCamera(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.photo_source.camera", service: service, en: "Take photo", zh: "Take photo")
+    }
+
+    static func photoSourceLibrary(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.photo_source.library", service: service, en: "Choose from Library", zh: "Choose from Library")
+    }
+
+    static func photoSourceLimit(maxCount: Int, service: LocalizationService = .current) -> String {
+        L10n.format(
+            "treasure.compose.photo_source.limit",
+            service: service,
+            en: "Up to %lld photos",
+            zh: "Up to %lld photos",
+            arguments: [maxCount]
+        )
+    }
+
+    static func photoSourceLimitMessage(maxCount: Int, service: LocalizationService = .current) -> String {
+        L10n.format(
+            "treasure.compose.photo_source.limit_message",
+            service: service,
+            en: "This entry can hold up to %lld photos.",
+            zh: "This entry can hold up to %lld photos.",
+            arguments: [maxCount]
+        )
+    }
+
+    static func discardTitle(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.discard.title", service: service, en: "Discard this entry?", zh: "Discard this entry?")
+    }
+
+    static func discardMessage(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.discard.message", service: service, en: "Nothing has been saved yet.", zh: "Nothing has been saved yet.")
+    }
+
+    static func continueEditing(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.discard.continue_editing", service: service, en: "Continue Editing", zh: "Continue Editing")
+    }
+
+    static func discard(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.discard.discard", service: service, en: "Discard", zh: "Discard")
+    }
+
+    static func saveFailureTitle(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.save_failure.title", service: service, en: "Couldn't save yet", zh: "Couldn't save yet")
+    }
+
+    static func saveFailureMessage(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.save_failure.message", service: service, en: "Please try again.", zh: "Please try again.")
+    }
+
+    static func retry(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.save_failure.retry", service: service, en: "Try Again", zh: "Try Again")
+    }
+
+    static func backToEdit(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.save_failure.back_to_edit", service: service, en: "Back to Edit", zh: "Back to Edit")
+    }
+
+    static func photoSectionTitle(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.photo.section_title", service: service, en: "Photos (optional)", zh: "Photos (optional)")
+    }
+
+    static func removePhotoAccessibility(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.photo.delete_accessibility", service: service, en: "Remove current photo", zh: "Remove current photo")
+    }
+
+    static func addMore(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.photo.add_more", service: service, en: "Add more", zh: "Add more")
+    }
+
+    static func emptyPhotoTitle(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.photo.empty_title", service: service, en: "Leave a set of photos", zh: "Leave a set of photos")
+    }
+
+    static func emptyPhotoSubtitle(maxCount: Int, service: LocalizationService = .current) -> String {
+        L10n.format(
+            "treasure.compose.photo.empty_subtitle",
+            service: service,
+            en: "Up to %lld photos, in the order you choose.",
+            zh: "Up to %lld photos, in the order you choose.",
+            arguments: [maxCount]
+        )
+    }
+
+    static func noteTitle(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.note.title", service: service, en: "A short note", zh: "A short note")
+    }
+
+    static func notePlaceholder(service: LocalizationService = .current) -> String {
+        L10n.text(
+            "treasure.compose.note.placeholder",
+            service: service,
+            en: "What would you like to remember about today?",
+            zh: "What would you like to remember about today?"
+        )
+    }
+
+    static func milestoneTitle(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.milestone.title", service: service, en: "Mark as milestone", zh: "Mark as milestone")
+    }
+
+    static func milestoneAccessibility(service: LocalizationService = .current) -> String {
+        L10n.text("treasure.compose.milestone.accessibility", service: service, en: "Mark as milestone", zh: "Mark as milestone")
+    }
+}
 
 struct TreasureComposeModal: View {
     @Bindable var store: TreasureStore
@@ -59,40 +185,40 @@ struct TreasureComposeModal: View {
                 }
             }
             .background(AppTheme.Colors.background.ignoresSafeArea())
-            .confirmationDialog("添加照片", isPresented: $isShowingPhotoSourcePicker) {
+            .confirmationDialog(TreasureComposeCopy.photoSourceTitle(), isPresented: $isShowingPhotoSourcePicker) {
                 if UIImagePickerController.isSourceTypeAvailable(.camera), remainingPhotoSlots > 0 {
-                    Button("拍照") {
+                    Button(TreasureComposeCopy.photoSourceCamera()) {
                         isShowingCamera = true
                     }
                 }
 
                 if remainingPhotoSlots > 0 {
-                    Button("从相册选择") {
+                    Button(TreasureComposeCopy.photoSourceLibrary()) {
                         isShowingLibraryPicker = true
                     }
                 } else {
-                    Button("最多可放 6 张") {}
+                    Button(TreasureComposeCopy.photoSourceLimit(maxCount: TreasureLimits.maxImagesPerEntry)) {}
                 }
             } message: {
                 if remainingPhotoSlots == 0 {
-                    Text("这一条记忆最多放 6 张照片。")
+                    Text(TreasureComposeCopy.photoSourceLimitMessage(maxCount: TreasureLimits.maxImagesPerEntry))
                 }
             }
-            .confirmationDialog("放弃这条记录？", isPresented: Binding(
+            .confirmationDialog(TreasureComposeCopy.discardTitle(), isPresented: Binding(
                 get: { store.shouldShowDiscardConfirmation },
                 set: { _ in }
             )) {
-                Button("继续编辑") {
+                Button(TreasureComposeCopy.continueEditing()) {
                     store.handle(.cancelDiscard)
                 }
 
-                Button("放弃", role: .destructive) {
+                Button(TreasureComposeCopy.discard(), role: .destructive) {
                     store.handle(.confirmDiscard)
                 }
             } message: {
-                Text("还没有保存。")
+                Text(TreasureComposeCopy.discardMessage())
             }
-            .alert("没有保存成功，请再试一次。", isPresented: Binding(
+            .alert(TreasureComposeCopy.saveFailureTitle(), isPresented: Binding(
                 get: { store.shouldShowComposeFailure },
                 set: { isPresented in
                     if !isPresented {
@@ -100,15 +226,15 @@ struct TreasureComposeModal: View {
                     }
                 }
             )) {
-                Button("再试一次") {
+                Button(TreasureComposeCopy.retry()) {
                     store.handle(.retrySaveCompose)
                 }
 
-                Button("返回编辑") {
+                Button(TreasureComposeCopy.backToEdit()) {
                     store.handle(.dismissComposeError)
                 }
             } message: {
-                Text(store.composeFailureMessage)
+                Text(TreasureComposeCopy.saveFailureMessage())
             }
             .photosPicker(
                 isPresented: $isShowingLibraryPicker,
@@ -150,7 +276,7 @@ struct TreasureComposeModal: View {
 
     private var composeHeader: some View {
         HStack {
-            Button("关闭") {
+            Button(TreasureComposeCopy.close()) {
                 store.handle(.dismissCompose)
             }
             .font(AppTheme.Typography.meta)
@@ -158,13 +284,13 @@ struct TreasureComposeModal: View {
 
             Spacer()
 
-            Text("留住今天")
+            Text(TreasureComposeCopy.title())
                 .font(AppTheme.Typography.sheetTitle)
                 .foregroundStyle(AppTheme.Colors.primaryText)
 
             Spacer()
 
-            Button("保存") {
+            Button(TreasureComposeCopy.save()) {
                 store.handle(.saveCompose)
             }
             .font(AppTheme.Typography.primaryButton)
@@ -225,7 +351,7 @@ private struct TreasureComposePhotoSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("照片（可选）")
+                Text(TreasureComposeCopy.photoSectionTitle())
                     .font(AppTheme.Typography.meta)
                     .foregroundStyle(AppTheme.Colors.secondaryText)
 
@@ -257,7 +383,7 @@ private struct TreasureComposePhotoSection: View {
                             .padding(14)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("删除当前照片")
+                    .accessibilityLabel(TreasureComposeCopy.removePhotoAccessibility())
                 }
                 .allowsHitTesting(isInteractionEnabled)
 
@@ -290,7 +416,7 @@ private struct TreasureComposePhotoSection: View {
                                         .font(.system(size: 18, weight: .medium))
                                         .foregroundStyle(TreasureTheme.sageDeep)
 
-                                    Text("继续添加")
+                                    Text(TreasureComposeCopy.addMore())
                                         .font(.system(size: 12, weight: .medium))
                                         .foregroundStyle(AppTheme.Colors.secondaryText)
                                 }
@@ -310,11 +436,11 @@ private struct TreasureComposePhotoSection: View {
                             .font(.system(size: 26, weight: .light))
                             .foregroundStyle(AppTheme.Colors.secondaryText)
 
-                        Text("留下一组画面")
+                        Text(TreasureComposeCopy.emptyPhotoTitle())
                             .font(AppTheme.Typography.sheetBody)
                             .foregroundStyle(AppTheme.Colors.secondaryText)
 
-                        Text("最多 6 张，按选择顺序排开。")
+                        Text(TreasureComposeCopy.emptyPhotoSubtitle(maxCount: TreasureLimits.maxImagesPerEntry))
                             .font(.system(size: 13, weight: .regular))
                             .foregroundStyle(AppTheme.Colors.tertiaryText)
                     }
@@ -353,7 +479,7 @@ private struct TreasureComposeNoteSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("一句记下来的话")
+            Text(TreasureComposeCopy.noteTitle())
                 .font(AppTheme.Typography.meta)
                 .foregroundStyle(AppTheme.Colors.secondaryText)
 
@@ -370,7 +496,7 @@ private struct TreasureComposeNoteSection: View {
                     .frame(minHeight: 180)
 
                 if note.trimmed.isEmpty {
-                    Text("今天有什么想记住的吗？")
+                    Text(TreasureComposeCopy.notePlaceholder())
                         .font(AppTheme.Typography.sheetBody)
                         .foregroundStyle(AppTheme.Colors.tertiaryText)
                         .padding(.horizontal, 22)
@@ -394,7 +520,7 @@ private struct TreasureComposeMilestoneToggle: View {
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(isOn ? AppTheme.Colors.highlight : AppTheme.Colors.secondaryText)
 
-                Text("记为里程碑")
+                Text(TreasureComposeCopy.milestoneTitle())
                     .font(AppTheme.Typography.sheetBody)
                     .foregroundStyle(AppTheme.Colors.primaryText)
 
@@ -415,6 +541,6 @@ private struct TreasureComposeMilestoneToggle: View {
             .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("记为里程碑")
+        .accessibilityLabel(TreasureComposeCopy.milestoneAccessibility())
     }
 }

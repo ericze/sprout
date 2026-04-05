@@ -52,7 +52,7 @@ struct BabyRepositoryTests {
         let newDate = Date(timeIntervalSinceNow: -86400 * 100)
         repo.updateBirthDate(newDate)
 
-        #expect(repo.activeBaby?.birthDate != nil)
+        #expect(repo.activeBaby?.birthDate == newDate)
     }
 
     @Test("updateGender persists change")
@@ -74,5 +74,67 @@ struct BabyRepositoryTests {
         let repo = env.makeBabyRepository()
 
         #expect(repo.activeBaby == nil)
+    }
+
+    @Test("updateName syncs to ActiveBabyState")
+    func testUpdateNameSyncsState() async throws {
+        let env = try makeTestEnvironment(now: .now)
+        let state = ActiveBabyState()
+        let repo = env.makeBabyRepository(activeBabyState: state)
+        repo.createDefaultIfNeeded()
+        state.updateFrom(repo.activeBaby)
+
+        repo.updateName("小花生")
+
+        #expect(state.headerConfig.babyName == "小花生")
+    }
+
+    @Test("updateBirthDate syncs to ActiveBabyState")
+    func testUpdateBirthDateSyncsState() async throws {
+        let env = try makeTestEnvironment(now: .now)
+        let state = ActiveBabyState()
+        let repo = env.makeBabyRepository(activeBabyState: state)
+        repo.createDefaultIfNeeded()
+        state.updateFrom(repo.activeBaby)
+
+        let newDate = Date(timeIntervalSinceNow: -86400 * 200)
+        repo.updateBirthDate(newDate)
+
+        #expect(state.headerConfig.birthDate == newDate)
+    }
+
+    @Test("updateGender syncs to ActiveBabyState via headerConfig")
+    func testUpdateGenderSyncsState() async throws {
+        let env = try makeTestEnvironment(now: .now)
+        let state = ActiveBabyState()
+        let repo = env.makeBabyRepository(activeBabyState: state)
+        repo.createDefaultIfNeeded()
+        state.updateFrom(repo.activeBaby)
+
+        let originalName = state.headerConfig.babyName
+        repo.updateGender(.male)
+
+        #expect(state.headerConfig.babyName == originalName)
+    }
+
+    @Test("updateName without ActiveBabyState does not crash")
+    func testUpdateNameWithoutState() async throws {
+        let env = try makeTestEnvironment(now: .now)
+        let repo = env.makeBabyRepository()
+        repo.createDefaultIfNeeded()
+
+        repo.updateName("安全测试")
+        #expect(repo.activeBaby?.name == "安全测试")
+    }
+
+    @Test("markOnboardingCompleted persists explicit completion state")
+    func testMarkOnboardingCompleted() async throws {
+        let env = try makeTestEnvironment(now: .now)
+        let repo = env.makeBabyRepository()
+        repo.createDefaultIfNeeded()
+
+        repo.markOnboardingCompleted()
+
+        #expect(repo.activeBaby?.hasCompletedOnboarding == true)
     }
 }

@@ -11,6 +11,7 @@ struct AppShellView: View {
     @Bindable var store: HomeStore
     @Bindable var growthStore: GrowthStore
     @Bindable var treasureStore: TreasureStore
+    @Bindable var activeBabyState: ActiveBabyState
 
     @State private var showSidebar = false
     @State private var isNavigationAtRoot = true
@@ -31,12 +32,14 @@ struct AppShellView: View {
         store: HomeStore,
         growthStore: GrowthStore,
         treasureStore: TreasureStore,
+        activeBabyState: ActiveBabyState,
         initialTab: HomeModule = .record
     ) {
         self.babyRepository = babyRepository
         self.store = store
         self.growthStore = growthStore
         self.treasureStore = treasureStore
+        self.activeBabyState = activeBabyState
         _selectedTab = State(initialValue: initialTab)
     }
 
@@ -89,7 +92,7 @@ struct AppShellView: View {
             VStack(spacing: 0) {
                 MagazineTopBar(
                     selectedTab: selectedTab,
-                    babyName: store.headerConfig.babyName,
+                    babyName: activeBabyState.headerConfig.babyName,
                     onSelect: selectTab,
                     onAvatarTap: { toggleSidebar(drawerWidth: drawerWidth) }
                 )
@@ -142,7 +145,7 @@ struct AppShellView: View {
     private func sidebarOverlay(drawerWidth: CGFloat) -> some View {
         ZStack(alignment: .leading) {
             SidebarDrawer(
-                headerConfig: store.headerConfig,
+                headerConfig: activeBabyState.headerConfig,
                 babyRepository: babyRepository,
                 isNavigationAtRoot: $isNavigationAtRoot,
                 isSidebarOpen: $showSidebar,
