@@ -228,19 +228,20 @@ case familyGroup     // Pro
 
 ### SidebarIndexItem Extension
 
-The existing `SidebarIndexItem.id` is `String` type. We keep `String` as the ID type for `Identifiable` conformance and add the `isPro` field:
+The existing `SidebarIndexItem` has fields: `id: String`, `title: String`, `detail: String`, `route: SidebarRoute`. Two new fields are added:
 
 ```swift
-// Migration: id remains String, add isPro field
 struct SidebarIndexItem: Identifiable {
-    let id: String              // unchanged — uses SidebarRoute.rawValue
-    let title: String
-    let icon: String            // SF Symbol name
-    let detail: String
-    let route: SidebarRoute     // navigation target
-    let isPro: Bool             // NEW: requires Pro entitlement
+    let id: String              // unchanged
+    let title: String           // unchanged
+    let detail: String          // unchanged
+    let route: SidebarRoute     // unchanged
+    let icon: String            // NEW — SF Symbol name (e.g. "globe", "cloud", "person.2")
+    let isPro: Bool             // NEW — requires Pro entitlement
 }
 ```
+
+All existing and new items in `SidebarIndexItem.items` must provide an `icon` value. The existing `.language` item gains `icon: "globe"`.
 
 ### Sidebar Menu Items (full list)
 
@@ -252,30 +253,30 @@ struct SidebarIndexItem: Identifiable {
 
 ### Tap Handling
 
-`SidebarMenuView` receives both `onNavigate: (SidebarRoute) -> Void` (existing) and `onProFeatureTap: () -> Void` (new) callbacks. It does NOT hold a reference to `SubscriptionManager`.
+`SidebarMenuView` receives both `onNavigate: (SidebarRoute) -> Void` (existing) and `onProFeatureTap: (SidebarRoute) -> Void` (new) callbacks. It does NOT hold a reference to `SubscriptionManager`. The route is passed through the callback so `AppShellView` knows which feature to navigate to after subscription.
 
 ```swift
 // In SidebarMenuView
 func handleIndexItemTap(_ item: SidebarIndexItem) {
     if item.isPro {
-        onProFeatureTap()  // AppShellView will check subscription & show paywall or navigate
+        onProFeatureTap(item.route)  // Pass route to AppShellView
     } else {
         onNavigate(item.route)
     }
 }
 
 // In AppShellView (receives the callback chain)
-func handleProFeatureTap() {
+func handleProFeatureTap(_ route: SidebarRoute) {
     if subscriptionManager.isPro {
-        // Navigate to the Pro feature (last tapped Pro route)
-        sidebarNavigationPath.append(lastProRoute)
+        // Navigate to the Pro feature
+        sidebarNavigationPath.append(route)
     } else {
         showPaywall = true
     }
 }
 ```
 
-Pro items display a lock icon (`lock.fill`, `AppTheme.Colors.secondaryText`) on the trailing side.
+**Sidebar item row layout:** Each row wraps content in an `HStack`. Non-Pro items show title + detail (existing). Pro items add a trailing `Spacer` + `Image(systemName: "lock.fill")` in `AppTheme.Colors.secondaryText`.
 
 ### Destination Views (Placeholders)
 
@@ -315,7 +316,7 @@ All new user-facing strings require en + zh:
 | `paywall.restore` | Restore Purchases | 恢复购买 |
 | `paywall.feature.multibaby.title` | Multi-Baby | 多宝宝管理 |
 | `paywall.feature.multibaby.detail` | Track multiple babies | 记录多个宝宝的成长 |
-| `paywall.feature.family.title` | Family Sharing | 家庭组共享 |
+| `paywall.feature.family.title` | Family Group | 家庭组 |
 | `paywall.feature.family.detail` | Invite family to co-record | 邀请家人共同记录 |
 | `paywall.feature.cloud.title` | Cloud Sync | 云端同步 |
 | `paywall.feature.cloud.detail` | Secure data backup | 数据安全备份 |
@@ -334,7 +335,7 @@ All new user-facing strings require en + zh:
 | `paywall.coming_soon.detail` | This feature is under development | 功能开发中，敬请期待 |
 | `sidebar.pro.badge` | Pro | Pro |
 
-The existing stale keys `shell.sidebar.cloud.title/detail` and `shell.sidebar.family.title/detail` will be **reused** (their extractionState changed from "stale" to "extracted_with_value") rather than replaced, since the content matches. The stale `shell.paywall.*` keys will be removed and replaced by the new `paywall.*` keys above.
+The existing stale keys `shell.sidebar.cloud.title/detail` and `shell.sidebar.family.title/detail` will be **reused** for sidebar menu items (their `extractionState` changed from "stale" to "extracted_with_value"). These serve the sidebar labels. The Paywall uses its own `paywall.feature.cloud.*` and `paywall.feature.family.*` keys (which may have slightly different wording suitable for the paywall marketing context). The stale `shell.paywall.*` keys will be removed and replaced by the new `paywall.*` keys above.
 
 ## File Structure
 
@@ -376,6 +377,22 @@ sproutTests/
 | `Localizable.xcstrings` | Add new L10n keys, clean up stale `shell.paywall.*` / `shell.sidebar.family.*` / `shell.sidebar.cloud.*` keys |
 
 **Note:** `SubscriptionManager` is created in `ContentView` (not `SproutApp`) for Phase 1. If Pro status is needed during onboarding in a future phase, the creation point would move up to `SproutApp`.
+
+**Environment injection pattern:**
+```swift
+// ContentView
+@State private var subscriptionManager = SubscriptionManager()
+
+var body: some View {
+    AppShellView(...)
+        .environment(subscriptionManager)  // Inject for all descendants
+}
+
+// Any consuming view
+@Environment(SubscriptionManager.self) private var subscriptionManager
+```
+
+This is a new pattern for this project (existing stores like `HomeStore` use explicit property passing). `SubscriptionManager` uses `@Environment` because it's needed across multiple feature boundaries (sidebar, paywall, future feature gates) — unlike feature-specific stores that are scoped to one module.
 
 ## Testing
 
