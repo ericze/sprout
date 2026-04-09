@@ -1,4 +1,5 @@
 import Observation
+import StoreKit
 import SwiftUI
 
 struct AppShellView: View {
@@ -18,6 +19,9 @@ struct AppShellView: View {
     @State private var selectedTab: HomeModule
     @State private var sidebarProgress: CGFloat = 0
     @State private var sidebarDragState: SidebarDragState?
+
+    @Environment(SubscriptionManager.self) private var subscriptionManager
+    @State private var showPaywall = false
 
     private let gesturePolicy = SidebarGesturePolicy()
     private let mainContentShiftFactor: CGFloat = 1
@@ -62,6 +66,10 @@ struct AppShellView: View {
 
                 sidebarOverlay(drawerWidth: drawerWidth)
             }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
+                    .environment(subscriptionManager)
+            }
             .onChange(of: selectedTab) { _, _ in
                 guard isSidebarVisible else { return }
                 closeSidebar(drawerWidth: drawerWidth)
@@ -93,6 +101,7 @@ struct AppShellView: View {
                 MagazineTopBar(
                     selectedTab: selectedTab,
                     babyName: activeBabyState.headerConfig.babyName,
+                    avatarPath: activeBabyState.headerConfig.avatarPath,
                     onSelect: selectTab,
                     onAvatarTap: { toggleSidebar(drawerWidth: drawerWidth) }
                 )
@@ -147,6 +156,7 @@ struct AppShellView: View {
             SidebarDrawer(
                 headerConfig: activeBabyState.headerConfig,
                 babyRepository: babyRepository,
+                onShowPaywall: { showPaywall = true },
                 isNavigationAtRoot: $isNavigationAtRoot,
                 isSidebarOpen: $showSidebar
             )
