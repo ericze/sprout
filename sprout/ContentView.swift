@@ -9,6 +9,7 @@ struct ContentView: View {
     @State private var treasureStore: TreasureStore? = nil
     @State private var babyRepository: BabyRepository? = nil
     @State private var hasBootstrapped = false
+    @State private var subscriptionManager = SubscriptionManager()
     private let launchOverrides = AppLaunchOverrides.current
 
     var body: some View {
@@ -25,6 +26,7 @@ struct ContentView: View {
                     activeBabyState: activeBabyState,
                     initialTab: launchOverrides.initialModule ?? .record
                 )
+                    .environment(subscriptionManager)
             }
         }
         .onChange(of: activeBabyState.headerConfig) { _, newConfig in
@@ -36,6 +38,10 @@ struct ContentView: View {
         .task {
             guard !hasBootstrapped else { return }
             hasBootstrapped = true
+
+            await subscriptionManager.loadProducts()
+            subscriptionManager.startListening()
+            await subscriptionManager.refreshStatus()
 
             let repo = BabyRepository(modelContext: modelContext, activeBabyState: activeBabyState)
             repo.createDefaultIfNeeded()
