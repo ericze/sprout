@@ -3,8 +3,10 @@ import SwiftUI
 struct SidebarDrawer: View {
     let headerConfig: HomeHeaderConfig
     let babyRepository: BabyRepository
+    let onShowPaywall: () -> Void
     @Binding var isNavigationAtRoot: Bool
     @Binding var isSidebarOpen: Bool
+    @Environment(SubscriptionManager.self) private var subscriptionManager
 
     @State private var navigationPath = NavigationPath()
 
@@ -12,8 +14,18 @@ struct SidebarDrawer: View {
         NavigationStack(path: $navigationPath) {
             SidebarMenuView(
                 headerConfig: headerConfig,
-                onHeaderTap: { navigationPath.append(SidebarRoute.babyProfile) },
-                onNavigate: { route in navigationPath.append(route) }
+                onNavigate: { route in
+                    let item = SidebarIndexItem.items.first { $0.route == route }
+                    if let item, item.isPro {
+                        if subscriptionManager.isPro {
+                            navigationPath.append(route)
+                        } else {
+                            onShowPaywall()
+                        }
+                    } else {
+                        navigationPath.append(route)
+                    }
+                }
             )
             .navigationDestination(for: SidebarRoute.self) { route in
                 switch route {
@@ -23,6 +35,10 @@ struct SidebarDrawer: View {
                     LanguageRegionView(onLanguageChange: { newLanguage in
                         AppLanguageManager.shared.language = newLanguage
                     })
+                case .cloudSync:
+                    CloudSyncPlaceholderView()
+                case .familyGroup:
+                    FamilyGroupPlaceholderView()
                 }
             }
         }
@@ -39,6 +55,8 @@ struct SidebarDrawer: View {
 enum SidebarRoute: Hashable {
     case babyProfile
     case language
+    case cloudSync
+    case familyGroup
 }
 
 struct SidebarIndexItem: Identifiable {
@@ -46,6 +64,7 @@ struct SidebarIndexItem: Identifiable {
     let title: String
     let detail: String
     let route: SidebarRoute
+    let isPro: Bool
 
     static var items: [SidebarIndexItem] {
         let service = LocalizationService.current
@@ -61,7 +80,34 @@ struct SidebarIndexItem: Identifiable {
                     forKey: "shell.sidebar.language.detail",
                     fallback: "Display language and timezone"
                 ),
-                route: .language
+                route: .language,
+                isPro: false
+            ),
+            SidebarIndexItem(
+                id: "cloudSync",
+                title: service.string(
+                    forKey: "shell.sidebar.cloud.title",
+                    fallback: "Cloud Sync"
+                ),
+                detail: service.string(
+                    forKey: "shell.sidebar.cloud.detail",
+                    fallback: "Secure data backup"
+                ),
+                route: .cloudSync,
+                isPro: true
+            ),
+            SidebarIndexItem(
+                id: "familyGroup",
+                title: service.string(
+                    forKey: "shell.sidebar.family.title",
+                    fallback: "Family Group"
+                ),
+                detail: service.string(
+                    forKey: "shell.sidebar.family.detail",
+                    fallback: "Invite family to share records"
+                ),
+                route: .familyGroup,
+                isPro: true
             ),
         ]
     }
