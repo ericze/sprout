@@ -27,7 +27,10 @@ final class BabyRepository {
     func createDefaultIfNeeded() -> Bool {
         do {
             guard try fetchActiveBaby() == nil else { return true }
-            let baby = BabyProfile()
+            let baby = BabyProfile(
+                id: UUID(),
+                syncStateRaw: SyncState.pendingUpsert.rawValue
+            )
             modelContext.insert(baby)
             try modelContext.save()
             return true
@@ -45,6 +48,7 @@ final class BabyRepository {
                 return false
             }
             baby.name = name
+            markPendingUpsert(baby)
             try modelContext.save()
             activeBabyState?.updateFrom(baby)
             return true
@@ -62,6 +66,7 @@ final class BabyRepository {
                 return false
             }
             baby.birthDate = date
+            markPendingUpsert(baby)
             try modelContext.save()
             activeBabyState?.updateFrom(baby)
             return true
@@ -79,6 +84,7 @@ final class BabyRepository {
                 return false
             }
             baby.gender = gender
+            markPendingUpsert(baby)
             try modelContext.save()
             activeBabyState?.updateFrom(baby)
             return true
@@ -114,6 +120,7 @@ final class BabyRepository {
                 baby.avatarPath = nil
             }
 
+            markPendingUpsert(baby)
             try modelContext.save()
 
             if let oldPath {
@@ -136,6 +143,7 @@ final class BabyRepository {
                 return false
             }
             baby.hasCompletedOnboarding = true
+            markPendingUpsert(baby)
             try modelContext.save()
             return true
         } catch {
@@ -158,6 +166,12 @@ final class BabyRepository {
 
     private func recordFailure(operation: String, reason: String) {
         logger.error("\(operation, privacy: .public) failed: \(reason, privacy: .public)")
+    }
+
+    private func markPendingUpsert(_ baby: BabyProfile) {
+        if baby.syncState != .pendingUpsert {
+            baby.syncState = .pendingUpsert
+        }
     }
 
     private var avatarDirectoryURL: URL {

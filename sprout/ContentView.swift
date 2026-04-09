@@ -8,6 +8,7 @@ struct ContentView: View {
     @State private var growthStore: GrowthStore? = nil
     @State private var treasureStore: TreasureStore? = nil
     @State private var babyRepository: BabyRepository? = nil
+    @State private var authManager: AuthManager? = nil
     @State private var hasBootstrapped = false
     @State private var subscriptionManager = SubscriptionManager()
     private let launchOverrides = AppLaunchOverrides.current
@@ -45,6 +46,28 @@ struct ContentView: View {
 
             let repo = BabyRepository(modelContext: modelContext, activeBabyState: activeBabyState)
             repo.createDefaultIfNeeded()
+
+            if authManager == nil {
+                do {
+                    let supabaseService = try SupabaseService.make()
+                    let manager = AuthManager(
+                        supabaseService: supabaseService,
+                        runLocalBootstrapper: {
+                            _ = LocalSyncBootstrapper(modelContext: modelContext)
+                                .prepareForSync(activeBabyState: activeBabyState)
+                        },
+                        triggerSyncHook: { reason in
+                            AppLogger.startup.info(
+                                "Auth hook requested sync: \(reason.rawValue, privacy: .public)"
+                            )
+                        }
+                    )
+                    authManager = manager
+                    await manager.restoreSession()
+                } catch {
+                    AppLogger.startup.error("AuthManager setup failed: \(String(describing: error), privacy: .public)")
+                }
+            }
 
             let headerConfig = HomeHeaderConfig.from(repo.activeBaby)
             activeBabyState.headerConfig = headerConfig

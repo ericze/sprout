@@ -10,12 +10,7 @@ struct SproutAppStartupTests {
 
     @Test("AppState.makeContainerResult succeeds with valid in-memory configuration")
     func testContainerCreationSucceeds() async throws {
-        let schema = Schema([
-            RecordItem.self,
-            MemoryEntry.self,
-            WeeklyLetter.self,
-            BabyProfile.self,
-        ])
+        let schema = SproutSchemaRegistry.schema
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
 
         let result = AppState.makeContainerResult(schema: schema, modelConfiguration: configuration)
@@ -34,12 +29,7 @@ struct SproutAppStartupTests {
     func testContainerCreationFailureReturnsErrorNotCrash() async throws {
         // Use a schema with an intentionally bad configuration path to force a failure.
         // A URL pointing to a non-existent, non-writable directory will cause ModelContainer to fail.
-        let schema = Schema([
-            RecordItem.self,
-            MemoryEntry.self,
-            WeeklyLetter.self,
-            BabyProfile.self,
-        ])
+        let schema = SproutSchemaRegistry.schema
 
         // Create a configuration pointing to an impossible path
         let impossibleURL = URL(fileURLWithPath: "/nonexistent_impossible_path_xyz/default.store")
@@ -71,12 +61,7 @@ struct SproutAppStartupTests {
         // that removes files. We confirm the result is either .success or .failure,
         // with no side effects on the filesystem.
 
-        let schema = Schema([
-            RecordItem.self,
-            MemoryEntry.self,
-            WeeklyLetter.self,
-            BabyProfile.self,
-        ])
+        let schema = SproutSchemaRegistry.schema
         let impossibleURL = URL(fileURLWithPath: "/nonexistent_impossible_path_abc/default.store")
         let configuration = ModelConfiguration(
             schema: schema,
@@ -129,14 +114,12 @@ struct SproutAppStartupTests {
 
     @Test("AppRootView exists and can be created with a container")
     func testAppRootViewCreation() async throws {
-        let schema = Schema([
-            RecordItem.self,
-            MemoryEntry.self,
-            WeeklyLetter.self,
-            BabyProfile.self,
-        ])
+        let schema = SproutSchemaRegistry.schema
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: schema, configurations: [configuration])
+        let container = try SproutContainerFactory.make(
+            schema: schema,
+            modelConfiguration: configuration
+        )
 
         let view = AppRootView(container: container, hasCompletedOnboarding: true)
         #expect(view != nil)
@@ -147,12 +130,7 @@ struct SproutAppStartupTests {
     @Test("Default schema includes all four model types")
     func testDefaultSchemaContainsAllModelTypes() async throws {
         // Use an in-memory configuration so this always succeeds
-        let schema = Schema([
-            RecordItem.self,
-            MemoryEntry.self,
-            WeeklyLetter.self,
-            BabyProfile.self,
-        ])
+        let schema = SproutSchemaRegistry.schema
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         let result = AppState.makeContainerResult(schema: schema, modelConfiguration: configuration)
 
@@ -180,6 +158,14 @@ struct SproutAppStartupTests {
             let baby = BabyProfile()
             context.insert(baby)
 
+            let tombstone = SyncDeletionTombstone(
+                entityType: .recordItem,
+                entityID: UUID(),
+                remoteVersion: nil,
+                readyAfter: .now
+            )
+            context.insert(tombstone)
+
             try context.save()
 
             let fetchedRecords = try context.fetch(FetchDescriptor<RecordItem>())
@@ -193,6 +179,9 @@ struct SproutAppStartupTests {
 
             let fetchedBabies = try context.fetch(FetchDescriptor<BabyProfile>())
             #expect(fetchedBabies.count == 1)
+
+            let fetchedTombstones = try context.fetch(FetchDescriptor<SyncDeletionTombstone>())
+            #expect(fetchedTombstones.count == 1)
 
         case .failure(let message):
             Issue.record("Schema test failed: \(message)")

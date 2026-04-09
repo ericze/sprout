@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		9989055D2F6EE1E1005B2BB6 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9989055E2F6EE1E1005B2BB6 /* XCTest.framework */; };
+		A1B2C3014C5D6E7F8090A001 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3014C5D6E7F8090A002 /* Supabase */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -24,6 +25,8 @@
 		998905382F6EE1DF005B2BB6 /* sprout.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = sprout.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		998905502F6EE1E1005B2BB6 /* sproutTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = sproutTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9989055E2F6EE1E1005B2BB6 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
+		A1B2C3014C5D6E7F8090A003 /* Supabase.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Supabase.xcconfig; sourceTree = "<group>"; };
+		A1B2C3014C5D6E7F8090A004 /* Supabase.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Supabase.xcconfig.example; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -57,6 +60,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1B2C3014C5D6E7F8090A001 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -76,9 +80,19 @@
 			children = (
 				9989053A2F6EE1DF005B2BB6 /* sprout */,
 				9989055C2F6EE1E1005B2BB6 /* sproutTests */,
+				A1B2C3014C5D6E7F8090A005 /* Config */,
 				998905392F6EE1DF005B2BB6 /* Products */,
 				998905E02F6F05D3005B2BB6 /* Recovered References */,
 			);
+			sourceTree = "<group>";
+		};
+		A1B2C3014C5D6E7F8090A005 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3014C5D6E7F8090A003 /* Supabase.xcconfig */,
+				A1B2C3014C5D6E7F8090A004 /* Supabase.xcconfig.example */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 		998905392F6EE1DF005B2BB6 /* Products */ = {
@@ -118,6 +132,7 @@
 			);
 			name = sprout;
 			packageProductDependencies = (
+				A1B2C3014C5D6E7F8090A002 /* Supabase */,
 			);
 			productName = sprout;
 			productReference = 998905382F6EE1DF005B2BB6 /* sprout.app */;
@@ -175,6 +190,9 @@
 			);
 			mainGroup = 9989052F2F6EE1DF005B2BB6;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A1B2C3014C5D6E7F8090A006 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 998905392F6EE1DF005B2BB6 /* Products */;
 			projectDirPath = "";
@@ -231,6 +249,7 @@
 /* Begin XCBuildConfiguration section */
 		998905472F6EE1E0005B2BB6 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A1B2C3014C5D6E7F8090A003 /* Supabase.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -246,6 +265,8 @@
 				INFOPLIST_KEY_CFBundleDisplayName = sprout;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Used to take photos for records.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Used to choose photos from your library for records.";
+				INFOPLIST_KEY_SUPABASE_ANON_KEY = "$(SUPABASE_ANON_KEY)";
+				INFOPLIST_KEY_SUPABASE_URL = "$(SUPABASE_URL)";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -277,6 +298,7 @@
 		};
 		998905482F6EE1E0005B2BB6 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A1B2C3014C5D6E7F8090A003 /* Supabase.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -292,6 +314,8 @@
 				INFOPLIST_KEY_CFBundleDisplayName = sprout;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Used to take photos for records.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Used to choose photos from your library for records.";
+				INFOPLIST_KEY_SUPABASE_ANON_KEY = "$(SUPABASE_ANON_KEY)";
+				INFOPLIST_KEY_SUPABASE_URL = "$(SUPABASE_URL)";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -488,6 +512,25 @@
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A1B2C3014C5D6E7F8090A006 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A1B2C3014C5D6E7F8090A002 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1B2C3014C5D6E7F8090A006 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCConfigurationList section */
 		998905332F6EE1DF005B2BB6 /* Build configuration list for PBXProject "sprout" */ = {

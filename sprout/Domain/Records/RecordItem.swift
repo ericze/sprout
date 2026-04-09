@@ -4,6 +4,7 @@ import SwiftData
 @Model
 final class RecordItem {
     @Attribute(.unique) var id: UUID
+    var babyID: UUID
     var timestamp: Date
     var type: String
     var value: Double?
@@ -11,12 +12,16 @@ final class RecordItem {
     var rightNursingSeconds: Int
     var subType: String?
     var imageURL: String?
+    var remoteImagePath: String?
+    var remoteVersion: Int64?
+    var syncStateRaw: String
     var aiSummary: String?
     var tags: [String]?
     var note: String?
 
     init(
         id: UUID = UUID(),
+        babyID: UUID = UUID(),
         timestamp: Date,
         type: String,
         value: Double? = nil,
@@ -24,11 +29,15 @@ final class RecordItem {
         rightNursingSeconds: Int = 0,
         subType: String? = nil,
         imageURL: String? = nil,
+        remoteImagePath: String? = nil,
+        remoteVersion: Int64? = nil,
+        syncStateRaw: String = SyncState.pendingUpsert.rawValue,
         aiSummary: String? = nil,
         tags: [String]? = nil,
         note: String? = nil
     ) {
         self.id = id
+        self.babyID = babyID
         self.timestamp = timestamp
         self.type = type
         self.value = value
@@ -36,6 +45,9 @@ final class RecordItem {
         self.rightNursingSeconds = rightNursingSeconds
         self.subType = subType
         self.imageURL = imageURL
+        self.remoteImagePath = remoteImagePath
+        self.remoteVersion = remoteVersion
+        self.syncStateRaw = syncStateRaw
         self.aiSummary = aiSummary
         self.tags = tags
         self.note = note
@@ -58,6 +70,11 @@ struct RecordRecoverySnapshot: Equatable {
 }
 
 extension RecordItem {
+    var syncState: SyncState {
+        get { SyncState(rawValue: syncStateRaw) ?? .pendingUpsert }
+        set { syncStateRaw = newValue.rawValue }
+    }
+
     var recordType: RecordType? {
         RecordType(rawValue: type)
     }

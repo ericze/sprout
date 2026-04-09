@@ -117,13 +117,11 @@ extension UIColor {
 
 enum PreviewContainer {
     static func make() -> ModelContainer {
-        let schema = Schema([
-            RecordItem.self,
-            MemoryEntry.self,
-            WeeklyLetter.self,
-            BabyProfile.self,
-        ])
+        let schema = SproutSchemaRegistry.schema
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-        return try! ModelContainer(for: schema, configurations: [configuration])
+        return try! SproutContainerFactory.make(
+            schema: schema,
+            modelConfiguration: configuration
+        )
     }
 }

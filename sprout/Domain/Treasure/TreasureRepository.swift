@@ -38,8 +38,10 @@ extension TreasureRepository {
             ).day ?? 0,
             0
         )
+        let babyID = try fetchPreferredBabyID() ?? UUID()
 
         let entry = MemoryEntry(
+            babyID: babyID,
             createdAt: createdAt,
             ageInDays: ageInDays,
             imageLocalPaths: Array(normalizedImagePaths),
@@ -85,6 +87,14 @@ extension TreasureRepository {
 
         guard let entry = try modelContext.fetch(descriptor).first else { return }
         let imagePaths = removeImage ? resolvedImageLocalPaths(for: entry) : []
+        let tombstone = SyncDeletionTombstone(
+            entityType: .memoryEntry,
+            entityID: entry.id,
+            remoteVersion: entry.remoteVersion,
+            readyAfter: .now
+        )
+        tombstone.storagePaths = entry.remoteImagePaths
+        modelContext.insert(tombstone)
         modelContext.delete(entry)
         try modelContext.save()
 
@@ -150,6 +160,25 @@ extension TreasureRepository {
         )
         descriptor.fetchLimit = 1
         return try modelContext.fetch(descriptor).first
+    }
+
+    private func fetchPreferredBabyID() throws -> UUID? {
+        var activeDescriptor = FetchDescriptor<BabyProfile>(
+            predicate: #Predicate<BabyProfile> { profile in
+                profile.isActive == true
+            },
+            sortBy: [SortDescriptor(\.createdAt, order: .forward)]
+        )
+        activeDescriptor.fetchLimit = 1
+        if let activeBaby = try modelContext.fetch(activeDescriptor).first {
+            return activeBaby.id
+        }
+
+        var fallbackDescriptor = FetchDescriptor<BabyProfile>(
+            sortBy: [SortDescriptor(\.createdAt, order: .forward)]
+        )
+        fallbackDescriptor.fetchLimit = 1
+        return try modelContext.fetch(fallbackDescriptor).first?.id
     }
 
     private func resolvedImageLocalPaths(for entry: MemoryEntry) -> [String] {

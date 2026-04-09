@@ -17,6 +17,7 @@ struct BabyRepositoryTests {
         #expect(baby != nil)
         #expect(baby?.isActive == true)
         #expect(baby?.gender == nil)
+        #expect(baby?.syncState == .pendingUpsert)
     }
 
     @Test("createDefaultIfNeeded does not duplicate when baby exists")
@@ -41,6 +42,7 @@ struct BabyRepositoryTests {
         #expect(repo.updateName("小花生") == true)
 
         #expect(repo.activeBaby?.name == "小花生")
+        #expect(repo.activeBaby?.syncState == .pendingUpsert)
     }
 
     @Test("updateBirthDate persists change")
@@ -53,6 +55,7 @@ struct BabyRepositoryTests {
         #expect(repo.updateBirthDate(newDate) == true)
 
         #expect(repo.activeBaby?.birthDate == newDate)
+        #expect(repo.activeBaby?.syncState == .pendingUpsert)
     }
 
     @Test("updateGender persists change")
@@ -63,9 +66,11 @@ struct BabyRepositoryTests {
 
         #expect(repo.updateGender(.male) == true)
         #expect(repo.activeBaby?.gender == .male)
+        #expect(repo.activeBaby?.syncState == .pendingUpsert)
 
         #expect(repo.updateGender(nil) == true)
         #expect(repo.activeBaby?.gender == nil)
+        #expect(repo.activeBaby?.syncState == .pendingUpsert)
     }
 
     @Test("activeBaby returns nil when no babies exist")
@@ -136,6 +141,7 @@ struct BabyRepositoryTests {
         #expect(repo.markOnboardingCompleted() == true)
 
         #expect(repo.activeBaby?.hasCompletedOnboarding == true)
+        #expect(repo.activeBaby?.syncState == .pendingUpsert)
     }
 
     @Test("update methods fail safely when no active baby exists")

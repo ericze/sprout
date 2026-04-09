@@ -303,7 +303,9 @@ extension RecordRepository {
         guard let record = try fetchRecord(id: id) else { return nil }
         let snapshot = record.recoverySnapshot
         let imagePath = record.imageURL?.trimmed.nilIfEmpty
+        removeDeletionTombstones(for: id)
         modelContext.delete(record)
+        createDeletionTombstone(for: record, strategy: strategy)
         try modelContext.save()
 
         switch strategy {
@@ -330,6 +332,9 @@ extension RecordRepository {
         flushExpiredPendingFoodPhotoRemovals()
 
         if let existingRecord = try fetchRecord(id: snapshot.recordID) {
+            if removeDeletionTombstones(for: snapshot.recordID) {
+                try modelContext.save()
+            }
             return existingRecord
         }
 
@@ -358,6 +363,7 @@ extension RecordRepository {
             note: snapshot.type == .food ? normalizedFood.note : nil
         )
 
+        _ = removeDeletionTombstones(for: snapshot.recordID)
         try insert(restoredRecord)
         FoodPhotoStorage.cancelPendingRemoval(for: snapshot.recordID, path: restoredImagePath)
         return restoredRecord
@@ -379,12 +385,14 @@ extension RecordRepository {
     }
 
     private func insert(_ record: RecordItem) throws {
+        applyCreateSyncMetadata(to: record)
         try validator.validate(record)
         modelContext.insert(record)
         try modelContext.save()
     }
 
     private func persistChanges(for record: RecordItem) throws {
+        record.syncState = .pendingUpsert
         try validator.validate(record)
         try modelContext.save()
     }
@@ -416,6 +424,69 @@ extension RecordRepository {
             note: normalizedNote,
             imageURL: normalizedImageURL
         )
+    }
+
+    private func applyCreateSyncMetadata(to record: RecordItem) {
+        if let activeBabyID = resolvedActiveBabyID() {
+            record.babyID = activeBabyID
+        }
+        record.remoteVersion = nil
+        record.syncState = .pendingUpsert
+    }
+
+    private func resolvedActiveBabyID() -> UUID? {
+        var activeDescriptor = FetchDescriptor<BabyProfile>(
+            predicate: #Predicate<BabyProfile> { $0.isActive == true }
+        )
+        activeDescriptor.fetchLimit = 1
+
+        if let activeBaby = try? modelContext.fetch(activeDescriptor).first {
+            let activeBabyID = activeBaby.id
+            return activeBabyID
+        }
+
+        var fallbackDescriptor = FetchDescriptor<BabyProfile>(
+            sortBy: [SortDescriptor(\.createdAt, order: .forward)]
+        )
+        fallbackDescriptor.fetchLimit = 1
+        let fallbackBaby = try? modelContext.fetch(fallbackDescriptor).first
+        return fallbackBaby?.id
+    }
+
+    private func createDeletionTombstone(for record: RecordItem, strategy: RecordDeletionStrategy) {
+        let readyAfter: Date
+        switch strategy {
+        case .immediateCleanup:
+            readyAfter = nowProvider()
+        case let .recoverable(undoWindow):
+            readyAfter = nowProvider().addingTimeInterval(max(undoWindow, 0))
+        }
+
+        let tombstone = SyncDeletionTombstone(
+            entityType: .recordItem,
+            entityID: record.id,
+            remoteVersion: record.remoteVersion,
+            readyAfter: readyAfter
+        )
+        if let remoteImagePath = record.remoteImagePath?.trimmed.nilIfEmpty {
+            tombstone.storagePaths = [remoteImagePath]
+        }
+        modelContext.insert(tombstone)
+    }
+
+    @discardableResult
+    private func removeDeletionTombstones(for recordID: UUID) -> Bool {
+        let entityTypeRaw = SyncDeletionEntityType.recordItem.rawValue
+        let descriptor = FetchDescriptor<SyncDeletionTombstone>(
+            predicate: #Predicate<SyncDeletionTombstone> { tombstone in
+                tombstone.entityID == recordID && tombstone.entityTypeRaw == entityTypeRaw
+            }
+        )
+        guard let tombstones = try? modelContext.fetch(descriptor), !tombstones.isEmpty else {
+            return false
+        }
+        tombstones.forEach(modelContext.delete)
+        return true
     }
 
     private func flushExpiredPendingFoodPhotoRemovals() {

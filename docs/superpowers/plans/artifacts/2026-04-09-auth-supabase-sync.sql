@@ -1,0 +1,3 @@
+-- 1.1.0 Phase 2 groundwork artifact.
+-- The executable migration will be filled in during Task 1.
+-- Kept in-repo now so the agreed artifact path is stable.

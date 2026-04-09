@@ -93,19 +93,17 @@ struct AppState {
         schema: Schema? = nil,
         modelConfiguration: ModelConfiguration? = nil
     ) -> ContainerResult {
-        let resolvedSchema = schema ?? Schema([
-            RecordItem.self,
-            MemoryEntry.self,
-            WeeklyLetter.self,
-            BabyProfile.self,
-        ])
+        let resolvedSchema = schema ?? SproutSchemaRegistry.schema
         let resolvedConfiguration = modelConfiguration ?? ModelConfiguration(
             schema: resolvedSchema,
             isStoredInMemoryOnly: false
         )
 
         do {
-            let container = try ModelContainer(for: resolvedSchema, configurations: [resolvedConfiguration])
+            let container = try SproutContainerFactory.make(
+                schema: resolvedSchema,
+                modelConfiguration: resolvedConfiguration
+            )
             return .success(container)
         } catch {
             let nsError = error as NSError

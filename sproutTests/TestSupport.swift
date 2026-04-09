@@ -29,14 +29,12 @@ final class MutableNow {
 
 @MainActor
 func makeTestEnvironment(now initialDate: Date) throws -> TestEnvironment {
-    let schema = Schema([
-        RecordItem.self,
-        MemoryEntry.self,
-        WeeklyLetter.self,
-        BabyProfile.self,
-    ])
+    let schema = SproutSchemaRegistry.schema
     let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-    let container = try ModelContainer(for: schema, configurations: [configuration])
+    let container = try SproutContainerFactory.make(
+        schema: schema,
+        modelConfiguration: configuration
+    )
     let modelContext = ModelContext(container)
     let now = MutableNow(initialDate)
     let recordRepository = RecordRepository(modelContext: modelContext, nowProvider: { now.value })

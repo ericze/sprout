@@ -3,11 +3,15 @@ import SwiftData
 
 @Model
 final class BabyProfile {
+    @Attribute(.unique) var id: UUID
     var name: String
     var birthDate: Date
     var gender: Gender?
     var createdAt: Date
     var avatarPath: String?
+    var remoteAvatarPath: String?
+    var remoteVersion: Int64?
+    var syncStateRaw: String
     var isActive: Bool
     var hasCompletedOnboarding: Bool
 
@@ -24,18 +28,33 @@ final class BabyProfile {
     }
 
     init(
+        id: UUID = UUID(),
         name: String = BabyProfile.defaultName,
         birthDate: Date = .now,
         gender: Gender? = nil,
         createdAt: Date = .now,
+        avatarPath: String? = nil,
+        remoteAvatarPath: String? = nil,
+        remoteVersion: Int64? = nil,
+        syncStateRaw: String = SyncState.pendingUpsert.rawValue,
         isActive: Bool = true,
         hasCompletedOnboarding: Bool = false
     ) {
+        self.id = id
         self.name = name
         self.birthDate = birthDate
         self.gender = gender
         self.createdAt = createdAt
+        self.avatarPath = avatarPath
+        self.remoteAvatarPath = remoteAvatarPath
+        self.remoteVersion = remoteVersion
+        self.syncStateRaw = syncStateRaw
         self.isActive = isActive
         self.hasCompletedOnboarding = hasCompletedOnboarding
+    }
+
+    var syncState: SyncState {
+        get { SyncState(rawValue: syncStateRaw) ?? .pendingUpsert }
+        set { syncStateRaw = newValue.rawValue }
     }
 }
