@@ -1,6 +1,8 @@
+import os
 import SwiftData
 import SwiftUI
 
+@MainActor
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var activeBabyState = ActiveBabyState()
@@ -9,6 +11,8 @@ struct ContentView: View {
     @State private var treasureStore: TreasureStore? = nil
     @State private var babyRepository: BabyRepository? = nil
     @State private var authManager: AuthManager? = nil
+    @State private var syncEngine: SyncEngine? = nil
+    @State private var cloudSyncStatusStore = CloudSyncStatusStore()
     @State private var hasBootstrapped = false
     @State private var subscriptionManager = SubscriptionManager()
     private let launchOverrides = AppLaunchOverrides.current
@@ -18,7 +22,7 @@ struct ContentView: View {
             AppTheme.Colors.background
                 .ignoresSafeArea()
 
-            if let store, let growthStore, let treasureStore, let babyRepository {
+            if let store, let growthStore, let treasureStore, let babyRepository, let authManager {
                 AppShellView(
                     babyRepository: babyRepository,
                     store: store,
@@ -27,6 +31,8 @@ struct ContentView: View {
                     activeBabyState: activeBabyState,
                     initialTab: launchOverrides.initialModule ?? .record
                 )
+                    .environment(authManager)
+                    .environment(cloudSyncStatusStore)
                     .environment(subscriptionManager)
             }
         }
@@ -48,25 +54,45 @@ struct ContentView: View {
             repo.createDefaultIfNeeded()
 
             if authManager == nil {
+                let supabaseService: any SupabaseServicing
+
                 do {
-                    let supabaseService = try SupabaseService.make()
-                    let manager = AuthManager(
-                        supabaseService: supabaseService,
-                        runLocalBootstrapper: {
-                            _ = LocalSyncBootstrapper(modelContext: modelContext)
-                                .prepareForSync(activeBabyState: activeBabyState)
-                        },
-                        triggerSyncHook: { reason in
-                            AppLogger.startup.info(
-                                "Auth hook requested sync: \(reason.rawValue, privacy: .public)"
+                    supabaseService = try SupabaseService.make()
+                } catch {
+                    AppLogger.startup.error("Supabase setup failed: \(String(describing: error), privacy: .public)")
+                    supabaseService = BootstrapFallbackSupabaseService()
+                }
+
+                let engine = SyncEngine(
+                    modelContext: modelContext,
+                    supabaseService: supabaseService,
+                    currentUserIDProvider: { authManager?.currentUser?.id }
+                )
+                syncEngine = engine
+                cloudSyncStatusStore.configure(syncEngine: engine)
+
+                let manager = AuthManager(
+                    supabaseService: supabaseService,
+                    runLocalBootstrapper: {
+                        _ = LocalSyncBootstrapper(modelContext: modelContext)
+                            .prepareForSync(activeBabyState: activeBabyState)
+                    },
+                    triggerSyncHook: { reason in
+                        AppLogger.startup.info(
+                            "Auth hook requested sync: \(reason.rawValue, privacy: .public)"
+                        )
+                        guard let authManager else { return }
+                        Task {
+                            await cloudSyncStatusStore.syncIfEligible(
+                                authState: authManager.authState,
+                                reason: reason
                             )
                         }
-                    )
-                    authManager = manager
-                    await manager.restoreSession()
-                } catch {
-                    AppLogger.startup.error("AuthManager setup failed: \(String(describing: error), privacy: .public)")
-                }
+                    }
+                )
+                authManager = manager
+                await manager.restoreSession()
+                cloudSyncStatusStore.refreshFromEngine()
             }
 
             let headerConfig = HomeHeaderConfig.from(repo.activeBaby)
@@ -102,6 +128,24 @@ struct ContentView: View {
             babyRepository = repo
         }
     }
+}
+
+private struct BootstrapFallbackSupabaseService: SupabaseServicing {
+    func restoreSession() async throws -> SupabaseSession? { nil }
+    func signIn(email: String, password: String) async throws -> SupabaseSession { throw SupabaseServiceError.sdkUnavailable }
+    func signUp(email: String, password: String) async throws -> SupabaseSession { throw SupabaseServiceError.sdkUnavailable }
+    func signOut() async throws {}
+    func fetchServerNow() async throws -> Date { throw SupabaseServiceError.sdkUnavailable }
+    func upsertBabyProfile(_ profile: BabyProfileDTO, expectedVersion: Int64?) async throws -> BabyProfileDTO { profile }
+    func upsertRecordItem(_ record: RecordItemDTO, expectedVersion: Int64?) async throws -> RecordItemDTO { record }
+    func upsertMemoryEntry(_ entry: MemoryEntryDTO, expectedVersion: Int64?) async throws -> MemoryEntryDTO { entry }
+    func fetchBabyProfiles(updatedAfter: Date?, upTo upperBound: Date) async throws -> [BabyProfileDTO] { [] }
+    func fetchRecordItems(updatedAfter: Date?, upTo upperBound: Date) async throws -> [RecordItemDTO] { [] }
+    func fetchMemoryEntries(updatedAfter: Date?, upTo upperBound: Date) async throws -> [MemoryEntryDTO] { [] }
+    func softDelete(table: SupabaseTable, id: UUID, expectedVersion: Int64?) async throws {}
+    func uploadAsset(data: Data, bucket: StorageBucket, path: String, contentType: String) async throws {}
+    func downloadAsset(bucket: StorageBucket, path: String) async throws -> Data { Data() }
+    func deleteAsset(bucket: StorageBucket, path: String) async throws {}
 }
 
 #Preview {

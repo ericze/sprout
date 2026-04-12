@@ -17,9 +17,9 @@ struct SproutAppStartupTests {
 
         switch result {
         case .success(let container):
-            #expect(container != nil)
+            #expect(!container.configurations.isEmpty)
         case .failure(let message):
-            Issue.record("Expected success but got failure: \(message)")
+            Issue.record(Comment(rawValue: "Expected success but got failure: \(message)"))
         }
     }
 
@@ -101,13 +101,13 @@ struct SproutAppStartupTests {
     @Test("AppStartupErrorView can be instantiated with an error message")
     func testErrorViewCreation() async {
         let view = AppStartupErrorView(errorMessage: "Test error message")
-        #expect(view != nil)
+        #expect(view.errorMessage == "Test error message")
     }
 
     @Test("AppStartupErrorView can be instantiated with an empty error message")
     func testErrorViewCreationWithEmptyMessage() async {
         let view = AppStartupErrorView(errorMessage: "")
-        #expect(view != nil)
+        #expect(view.errorMessage.isEmpty)
     }
 
     // MARK: - AppRootView routes correctly
@@ -122,7 +122,7 @@ struct SproutAppStartupTests {
         )
 
         let view = AppRootView(container: container, hasCompletedOnboarding: true)
-        #expect(view != nil)
+        #expect(view.hasCompletedOnboarding == true)
     }
 
     // MARK: - Default schema contains all required model types
@@ -184,7 +184,7 @@ struct SproutAppStartupTests {
             #expect(fetchedTombstones.count == 1)
 
         case .failure(let message):
-            Issue.record("Schema test failed: \(message)")
+            Issue.record(Comment(rawValue: "Schema test failed: \(message)"))
         }
     }
 

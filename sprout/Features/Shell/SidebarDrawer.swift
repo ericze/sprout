@@ -35,8 +35,12 @@ struct SidebarDrawer: View {
                     LanguageRegionView(onLanguageChange: { newLanguage in
                         AppLanguageManager.shared.language = newLanguage
                     })
+                case .account:
+                    AccountView()
                 case .cloudSync:
-                    CloudSyncPlaceholderView()
+                    CloudSyncView(onOpenAccount: {
+                        navigationPath.append(SidebarRoute.account)
+                    })
                 case .familyGroup:
                     FamilyGroupPlaceholderView()
                 }
@@ -55,6 +59,7 @@ struct SidebarDrawer: View {
 enum SidebarRoute: Hashable {
     case babyProfile
     case language
+    case account
     case cloudSync
     case familyGroup
 }
@@ -84,17 +89,38 @@ struct SidebarIndexItem: Identifiable {
                 isPro: false
             ),
             SidebarIndexItem(
-                id: "cloudSync",
-                title: service.string(
-                    forKey: "shell.sidebar.cloud.title",
-                    fallback: "Cloud Sync"
+                id: "account",
+                title: L10n.text(
+                    "shell.sidebar.account.title",
+                    service: service,
+                    en: "Account",
+                    zh: "账号"
                 ),
-                detail: service.string(
-                    forKey: "shell.sidebar.cloud.detail",
-                    fallback: "Secure data backup"
+                detail: L10n.text(
+                    "shell.sidebar.account.detail",
+                    service: service,
+                    en: "Sign in and manage this device connection",
+                    zh: "登录并管理这台设备的连接"
+                ),
+                route: .account,
+                isPro: false
+            ),
+            SidebarIndexItem(
+                id: "cloudSync",
+                title: L10n.text(
+                    "shell.sidebar.cloud.title",
+                    service: service,
+                    en: "Cloud Sync",
+                    zh: "云端同步"
+                ),
+                detail: L10n.text(
+                    "shell.sidebar.cloud.detail",
+                    service: service,
+                    en: "Back up records when you are signed in",
+                    zh: "登录后再安静地备份记录"
                 ),
                 route: .cloudSync,
-                isPro: true
+                isPro: false
             ),
             SidebarIndexItem(
                 id: "familyGroup",

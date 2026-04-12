@@ -49,8 +49,8 @@ struct LocalSyncBootstrapper {
 
         hasChanges = normalizeActiveBabyFlags(in: babies, activeBabyID: activeBabyID) || hasChanges
         hasChanges = markBabiesDirty(babies) || hasChanges
-        hasChanges = backfillRecords(activeBabyID: activeBabyID) || hasChanges
-        hasChanges = backfillMemoryEntries(activeBabyID: activeBabyID) || hasChanges
+        hasChanges = try backfillRecords(activeBabyID: activeBabyID) || hasChanges
+        hasChanges = try backfillMemoryEntries(activeBabyID: activeBabyID) || hasChanges
 
         if hasChanges {
             try modelContext.save()

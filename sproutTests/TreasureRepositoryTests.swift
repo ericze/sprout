@@ -60,9 +60,10 @@ final class TreasureRepositoryTests: XCTestCase {
         try environment.treasureRepository.deleteMemoryEntry(id: entry.id, removeImage: false)
 
         XCTAssertNil(try environment.treasureRepository.fetchMemoryEntry(id: entry.id))
+        let entryID = entry.id
         var descriptor = FetchDescriptor<SyncDeletionTombstone>(
             predicate: #Predicate<SyncDeletionTombstone> { tombstone in
-                tombstone.entityID == entry.id
+                tombstone.entityID == entryID
             }
         )
         descriptor.fetchLimit = 1

@@ -60,8 +60,8 @@ final class AuthManager {
             persistLinkedUserIDIfNeeded(incomingUserID)
             currentUser = session.user
             runLocalBootstrapper()
-            triggerSyncHook(.appLaunch)
             authState = .authenticated(userID: incomingUserID)
+            triggerSyncHook(.appLaunch)
         } catch {
             currentUser = nil
             authState = .error(error.localizedDescription)
@@ -114,8 +114,8 @@ final class AuthManager {
         persistLinkedUserIDIfNeeded(incomingUserID)
         currentUser = session.user
         runLocalBootstrapper()
-        triggerSyncHook(syncReason)
         authState = .authenticated(userID: incomingUserID)
+        triggerSyncHook(syncReason)
     }
 
     private func isBindingAllowed(for userID: UUID) -> Bool {

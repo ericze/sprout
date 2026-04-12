@@ -4,16 +4,14 @@ import SwiftData
 enum SproutSchemaV1: VersionedSchema {
     static var versionIdentifier = Schema.Version(1, 0, 0)
 
-    static var models: [any PersistentModel.Type] {
-        [
-            BabyProfile.self,
-            RecordItem.self,
-            MemoryEntry.self,
-            WeeklyLetter.self,
-        ]
-    }
+    static var models: [any PersistentModel.Type] = [
+        BabyProfile.self,
+        RecordItem.self,
+        MemoryEntry.self,
+        WeeklyLetter.self,
+    ]
 
-    @Model(originalName: "BabyProfile")
+    @Model
     final class BabyProfile {
         var name: String
         var birthDate: Date
@@ -47,7 +45,7 @@ enum SproutSchemaV1: VersionedSchema {
         }
     }
 
-    @Model(originalName: "RecordItem")
+    @Model
     final class RecordItem {
         @Attribute(.unique) var id: UUID
         var timestamp: Date
@@ -88,7 +86,7 @@ enum SproutSchemaV1: VersionedSchema {
         }
     }
 
-    @Model(originalName: "MemoryEntry")
+    @Model
     final class MemoryEntry {
         @Attribute(.unique) var id: UUID
         var createdAt: Date
@@ -114,7 +112,7 @@ enum SproutSchemaV1: VersionedSchema {
         }
     }
 
-    @Model(originalName: "WeeklyLetter")
+    @Model
     final class WeeklyLetter {
         @Attribute(.unique) var id: UUID
         var weekStart: Date
@@ -279,7 +277,7 @@ enum SproutSchemaRegistry {
     }
 
     static var schema: Schema {
-        SproutSchemaV2.schema
+        Schema(SproutSchemaV2.models, version: SproutSchemaV2.versionIdentifier)
     }
 }
 

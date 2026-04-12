@@ -1,4 +1,5 @@
 import XCTest
+import SwiftData
 @testable import sprout
 
 @MainActor
@@ -197,7 +198,11 @@ final class RecordRepositoryTests: XCTestCase {
         XCTAssertEqual(tombstones.count, 1)
         XCTAssertEqual(tombstones[0].entityID, record.id)
         XCTAssertEqual(tombstones[0].remoteVersion, 9)
-        XCTAssertEqual(tombstones[0].readyAfter, environment.now.value.addingTimeInterval(4), accuracy: 0.001)
+        XCTAssertEqual(
+            tombstones[0].readyAfter.timeIntervalSinceReferenceDate,
+            environment.now.value.addingTimeInterval(4).timeIntervalSinceReferenceDate,
+            accuracy: 0.001
+        )
         XCTAssertEqual(tombstones[0].storagePaths, [record.remoteImagePath!])
     }
 

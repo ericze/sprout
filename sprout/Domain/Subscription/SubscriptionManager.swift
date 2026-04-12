@@ -18,11 +18,11 @@ final class SubscriptionManager {
     }
 
     init(
-        provider: ProductProvider = StoreKitProvider(),
-        cache: SubscriptionCache = UserDefaultsSubscriptionCache()
+        provider: ProductProvider? = nil,
+        cache: SubscriptionCache? = nil
     ) {
-        self.provider = provider
-        self.cache = cache
+        self.provider = provider ?? StoreKitProvider()
+        self.cache = cache ?? UserDefaultsSubscriptionCache()
     }
 
     func isEntitled(_ entitlement: Entitlement) -> Bool {

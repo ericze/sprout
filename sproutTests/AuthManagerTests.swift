@@ -32,6 +32,30 @@ struct AuthManagerTests {
         #expect(await mockService.readSignOutCount() == 0)
     }
 
+    @Test("signIn publishes authenticated state before sync hook runs")
+    func signInSetsAuthenticatedStateBeforeSyncHook() async throws {
+        let defaults = makeIsolatedDefaults()
+        let userID = UUID()
+        let session = SupabaseSession(user: SupabaseAuthUser(id: userID, email: "ordered@example.com"))
+        let mockService = MockSupabaseService()
+        await mockService.stubSignIn(result: .success(session))
+
+        var manager: AuthManager?
+        var observedAuthState: AuthState?
+        manager = AuthManager(
+            supabaseService: mockService,
+            defaults: defaults,
+            linkedUserIDStorageKey: "auth.linked.id.test",
+            triggerSyncHook: { _ in
+                observedAuthState = manager?.authState
+            }
+        )
+
+        try await manager?.signIn(email: "ordered@example.com", password: "password")
+
+        #expect(observedAuthState == .authenticated(userID: userID))
+    }
+
     @Test("signIn with a different linked account moves to blockedByAccountBinding and keeps local binding")
     func signInMismatchedAccountBecomesBlocked() async throws {
         let defaults = makeIsolatedDefaults()
@@ -55,11 +79,11 @@ struct AuthManagerTests {
 
         do {
             try await manager.signIn(email: "incoming@example.com", password: "password")
-            Issue.record("Expected account binding conflict")
+            Issue.record(Comment(rawValue: "Expected account binding conflict"))
         } catch let error as AuthManagerError {
             #expect(error == .accountBindingConflict(linkedUserID: linkedUserID, incomingUserID: incomingUserID))
         } catch {
-            Issue.record("Unexpected error: \(error)")
+            Issue.record(error, Comment(rawValue: "Unexpected error"))
         }
 
         #expect(manager.authState == .blockedByAccountBinding)
@@ -161,7 +185,7 @@ struct AuthManagerTests {
 
         do {
             try await manager.signUp(email: "new@example.com", password: "password")
-            Issue.record("Expected signUp to throw")
+            Issue.record(Comment(rawValue: "Expected signUp to throw"))
         } catch {}
 
         #expect(manager.authState == .error("boom"))

@@ -62,9 +62,11 @@ struct SidebarMenuView: View {
                             forKey: "shell.sidebar.note.title",
                             fallback: "A note"
                         ),
-                        value: localizationService.string(
-                            forKey: "shell.sidebar.note.body",
-                            fallback: "A quiet place for settings, profile, and preferences."
+                        value: L10n.text(
+                            "shell.sidebar.note.body.quiet",
+                            service: localizationService,
+                            en: "A quiet place for profile, account, sync, and preferences.",
+                            zh: "这是一个安静的角落，用来放宝宝资料、账号、同步和偏好设置。"
                         )
                     )
                 }
@@ -138,9 +140,11 @@ struct SidebarMenuView: View {
 
     private var footerNote: some View {
         Text(
-            localizationService.string(
-                forKey: "shell.sidebar.footer",
-                fallback: "A quiet entry for settings, without interrupting the calm of the record page."
+            L10n.text(
+                "shell.sidebar.footer.quiet",
+                service: localizationService,
+                en: "A quiet entry for account, sync, and settings, without interrupting the calm of the record page.",
+                zh: "把账号、同步和设置留在这里，不打断记录页原本的安静。"
             )
         )
         .font(AppTheme.Typography.meta)
