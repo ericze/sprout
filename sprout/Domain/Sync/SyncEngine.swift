@@ -44,6 +44,7 @@ final class SyncEngine {
     private let currentUserIDProvider: @MainActor () -> UUID?
     private let nowProvider: @MainActor () -> Date
     private let debounceIntervalNanoseconds: UInt64
+    let cursorStore: SyncCursorStore
     @ObservationIgnored private let assetSyncServiceFactory: @MainActor () -> AssetSyncService
     @ObservationIgnored private var syncDebounceTask: Task<Void, Never>?
 
@@ -55,6 +56,7 @@ final class SyncEngine {
         currentUserIDProvider: @escaping @MainActor () -> UUID?,
         nowProvider: @escaping @MainActor () -> Date = { .now },
         debounceIntervalNanoseconds: UInt64 = SyncEngine.defaultDebounceIntervalNanoseconds,
+        cursorStore: SyncCursorStore = SyncCursorStore(),
         assetSyncServiceFactory: @escaping @MainActor () -> AssetSyncService? = { nil }
     ) {
         self.modelContext = modelContext
@@ -62,6 +64,7 @@ final class SyncEngine {
         self.currentUserIDProvider = currentUserIDProvider
         self.nowProvider = nowProvider
         self.debounceIntervalNanoseconds = debounceIntervalNanoseconds
+        self.cursorStore = cursorStore
         self.assetSyncServiceFactory = {
             assetSyncServiceFactory() ?? AssetSyncService(supabaseService: supabaseService)
         }

@@ -343,6 +343,178 @@ struct SyncEngineTests {
         #expect(engine.syncUIState.phase == .error("boom"))
     }
 
+    @Test("full sync pulls remote rows into an empty local store and saves cursor")
+    func fullSyncPullsRowsAndSavesCursor() async throws {
+        let serverNow = Date(timeIntervalSince1970: 1_710_400_000)
+        let environment = try makeTestEnvironment(now: serverNow)
+        let userID = UUID()
+        let babyID = UUID()
+        let recordID = UUID()
+        let memoryID = UUID()
+
+        let remoteBaby = BabyProfileDTO(
+            id: babyID,
+            userID: userID,
+            name: "RemoteBaby",
+            birthDate: Date(timeIntervalSince1970: 1_700_000_000),
+            gender: nil,
+            avatarStoragePath: nil,
+            isActive: true,
+            hasCompletedOnboarding: true,
+            createdAt: Date(timeIntervalSince1970: 1_700_000_100),
+            updatedAt: serverNow.addingTimeInterval(-100),
+            version: 5,
+            deletedAt: nil
+        )
+        let remoteRecord = RecordItemDTO(
+            id: recordID,
+            userID: userID,
+            babyID: babyID,
+            type: RecordType.milk.rawValue,
+            timestamp: serverNow.addingTimeInterval(-200),
+            value: 120,
+            leftNursingSeconds: 0,
+            rightNursingSeconds: 0,
+            subType: nil,
+            imageStoragePath: nil,
+            aiSummary: nil,
+            tags: nil,
+            note: "remote note",
+            createdAt: serverNow.addingTimeInterval(-200),
+            updatedAt: serverNow.addingTimeInterval(-50),
+            version: 3,
+            deletedAt: nil
+        )
+        let remoteMemory = MemoryEntryDTO(
+            id: memoryID,
+            userID: userID,
+            babyID: babyID,
+            createdAt: serverNow.addingTimeInterval(-300),
+            ageInDays: 42,
+            imageStoragePaths: [],
+            note: "first smile",
+            isMilestone: true,
+            updatedAt: serverNow.addingTimeInterval(-30),
+            version: 7,
+            deletedAt: nil
+        )
+
+        let mock = MockSupabaseService(
+            serverNow: serverNow,
+            babyProfiles: [babyID: remoteBaby],
+            recordItems: [recordID: remoteRecord],
+            memoryEntries: [memoryID: remoteMemory]
+        )
+
+        let testDefaults = UserDefaults(suiteName: "sync-cursor-test-\(UUID().uuidString)")!
+        let cursorStore = SyncCursorStore(defaults: testDefaults, keyPrefix: "test.cursor")
+
+        let engine = SyncEngine(
+            modelContext: environment.modelContext,
+            supabaseService: mock,
+            currentUserIDProvider: { userID },
+            nowProvider: { environment.now.value },
+            cursorStore: cursorStore
+        )
+
+        await engine.performFullSync(reason: .manual)
+
+        // Assert: local SwiftData rows were created from remote DTOs.
+        let pulledBaby = try fetchBaby(id: babyID, in: environment.modelContext)
+        #expect(pulledBaby != nil)
+        #expect(pulledBaby?.name == "RemoteBaby")
+        #expect(pulledBaby?.syncState == .synced)
+        #expect(pulledBaby?.remoteVersion == 5)
+
+        let pulledRecord = try fetchRecord(id: recordID, in: environment.modelContext)
+        #expect(pulledRecord != nil)
+        #expect(pulledRecord?.value == 120)
+        #expect(pulledRecord?.note == "remote note")
+        #expect(pulledRecord?.syncState == .synced)
+        #expect(pulledRecord?.remoteVersion == 3)
+
+        let pulledMemory = try fetchMemory(id: memoryID, in: environment.modelContext)
+        #expect(pulledMemory != nil)
+        #expect(pulledMemory?.note == "first smile")
+        #expect(pulledMemory?.isMilestone == true)
+        #expect(pulledMemory?.syncState == .synced)
+        #expect(pulledMemory?.remoteVersion == 7)
+
+        // Assert: cursor was saved for the authenticated user.
+        let cursor = cursorStore.load(for: userID)
+        #expect(cursor.babyProfilesAt != nil)
+        #expect(cursor.recordItemsAt != nil)
+        #expect(cursor.memoryEntriesAt != nil)
+    }
+
+    @Test("pull does not overwrite local pendingUpsert rows")
+    func pullSkipsDirtyRows() async throws {
+        let serverNow = Date(timeIntervalSince1970: 1_710_500_000)
+        let environment = try makeTestEnvironment(now: serverNow)
+        let userID = UUID()
+        let babyID = UUID()
+        let recordID = UUID()
+
+        // Create a local record that is dirty (pending upsert).
+        let localRecord = RecordItem(
+            id: recordID,
+            babyID: babyID,
+            timestamp: serverNow.addingTimeInterval(-200),
+            type: RecordType.milk.rawValue,
+            value: 90,
+            note: "local edit",
+            syncStateRaw: SyncState.pendingUpsert.rawValue
+        )
+        environment.modelContext.insert(localRecord)
+        try environment.modelContext.save()
+
+        // Remote has a newer version of the same record.
+        let remoteRecord = RecordItemDTO(
+            id: recordID,
+            userID: userID,
+            babyID: babyID,
+            type: RecordType.milk.rawValue,
+            timestamp: serverNow.addingTimeInterval(-200),
+            value: 150,
+            leftNursingSeconds: 0,
+            rightNursingSeconds: 0,
+            subType: nil,
+            imageStoragePath: nil,
+            aiSummary: nil,
+            tags: nil,
+            note: "remote edit",
+            createdAt: serverNow.addingTimeInterval(-200),
+            updatedAt: serverNow.addingTimeInterval(-10),
+            version: 10,
+            deletedAt: nil
+        )
+
+        let mock = MockSupabaseService(
+            serverNow: serverNow,
+            recordItems: [recordID: remoteRecord]
+        )
+
+        let testDefaults = UserDefaults(suiteName: "sync-cursor-test-\(UUID().uuidString)")!
+        let cursorStore = SyncCursorStore(defaults: testDefaults, keyPrefix: "test.cursor")
+
+        let engine = SyncEngine(
+            modelContext: environment.modelContext,
+            supabaseService: mock,
+            currentUserIDProvider: { userID },
+            nowProvider: { environment.now.value },
+            cursorStore: cursorStore
+        )
+
+        await engine.performFullSync(reason: .manual)
+
+        // Assert: local dirty values survived the pull.
+        let fetchedRecord = try fetchRecord(id: recordID, in: environment.modelContext)
+        #expect(fetchedRecord != nil)
+        #expect(fetchedRecord?.value == 90)
+        #expect(fetchedRecord?.note == "local edit")
+        #expect(fetchedRecord?.syncState == .pendingUpsert)
+    }
+
     private func fetchBaby(id: UUID, in context: ModelContext) throws -> BabyProfile? {
         var descriptor = FetchDescriptor<BabyProfile>(predicate: #Predicate { $0.id == id })
         descriptor.fetchLimit = 1
