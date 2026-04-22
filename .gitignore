@@ -7,5 +7,6 @@ build/
 sprout.xcodeproj/project.xcworkspace/xcuserdata/
 sprout.xcodeproj/xcuserdata/
 
+.worktrees/
 .claude/worktrees/
 Config/Supabase.local.xcconfig
