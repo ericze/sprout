@@ -62,6 +62,10 @@ actor MockSupabaseService: SupabaseServicing {
         operations
     }
 
+    func storeAsset(key: String, data: Data) {
+        storedAssets[key] = data
+    }
+
     func restoreSession() async throws -> SupabaseSession? {
         session
     }

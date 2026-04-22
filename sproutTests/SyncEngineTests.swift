@@ -1105,6 +1105,152 @@ struct SyncEngineTests {
         #expect(fetchedMemory?.note == "dirty local")
     }
 
+    // MARK: - Task 4: Asset download during pull
+
+    @Test("pull downloads a missing food photo and keeps the row synced")
+    func pullDownloadsFoodPhoto() async throws {
+        let serverNow = Date(timeIntervalSince1970: 1_711_100_000)
+        let environment = try makeTestEnvironment(now: serverNow)
+        let userID = UUID()
+        let babyID = UUID()
+        let recordID = UUID()
+
+        let photoPath = AssetSyncService.foodPhotoStoragePath(userID: userID, recordID: recordID)
+        let photoData = Data("food-photo-bytes".utf8)
+
+        let remoteRecord = RecordItemDTO(
+            id: recordID,
+            userID: userID,
+            babyID: babyID,
+            type: RecordType.food.rawValue,
+            timestamp: serverNow.addingTimeInterval(-200),
+            value: 120,
+            leftNursingSeconds: 0,
+            rightNursingSeconds: 0,
+            subType: nil,
+            imageStoragePath: photoPath,
+            aiSummary: nil,
+            tags: nil,
+            note: "photo record",
+            createdAt: serverNow.addingTimeInterval(-200),
+            updatedAt: serverNow.addingTimeInterval(-50),
+            version: 3,
+            deletedAt: nil
+        )
+
+        let mock = MockSupabaseService(
+            serverNow: serverNow,
+            recordItems: [recordID: remoteRecord]
+        )
+        // Pre-seed the mock so download returns the image data.
+        await mock.storeAsset(key: "food-photos::\(photoPath)", data: photoData)
+
+        let testDefaults = UserDefaults(suiteName: "sync-cursor-test-\(UUID().uuidString)")!
+        let cursorStore = SyncCursorStore(defaults: testDefaults, keyPrefix: "test.cursor")
+
+        let engine = SyncEngine(
+            modelContext: environment.modelContext,
+            supabaseService: mock,
+            currentUserIDProvider: { userID },
+            nowProvider: { environment.now.value },
+            cursorStore: cursorStore
+        )
+
+        await engine.performFullSync(reason: .manual)
+
+        let pulledRecord = try fetchRecord(id: recordID, in: environment.modelContext)
+        #expect(pulledRecord != nil)
+        #expect(pulledRecord?.syncState == .synced)
+        #expect(pulledRecord?.remoteImagePath == photoPath)
+
+        // The local imageURL should now point to a readable file.
+        let localPath = pulledRecord?.imageURL
+        #expect(localPath != nil)
+        #expect(FileManager.default.fileExists(atPath: localPath!))
+
+        // Verify the file content matches what we pre-seeded.
+        let storedData = FileManager.default.contents(atPath: localPath!)
+        #expect(storedData == photoData)
+
+        // Row must NOT be dirty after asset download.
+        #expect(pulledRecord?.syncState == .synced)
+    }
+
+    @Test("pull downloads treasure photos in order and does not dirty the entry")
+    func pullDownloadsTreasurePhotosInOrder() async throws {
+        let serverNow = Date(timeIntervalSince1970: 1_711_200_000)
+        let environment = try makeTestEnvironment(now: serverNow)
+        let userID = UUID()
+        let babyID = UUID()
+        let memoryID = UUID()
+
+        let photoPaths = AssetSyncService.treasurePhotoStoragePaths(
+            userID: userID,
+            entryID: memoryID,
+            localImageCount: 3
+        )
+        let photo0Data = Data("treasure-photo-0".utf8)
+        let photo1Data = Data("treasure-photo-1".utf8)
+        let photo2Data = Data("treasure-photo-2".utf8)
+
+        let remoteMemory = MemoryEntryDTO(
+            id: memoryID,
+            userID: userID,
+            babyID: babyID,
+            createdAt: serverNow.addingTimeInterval(-300),
+            ageInDays: 42,
+            imageStoragePaths: photoPaths,
+            note: "multi-photo memory",
+            isMilestone: true,
+            updatedAt: serverNow.addingTimeInterval(-30),
+            version: 5,
+            deletedAt: nil
+        )
+
+        let mock = MockSupabaseService(
+            serverNow: serverNow,
+            memoryEntries: [memoryID: remoteMemory]
+        )
+        // Pre-seed downloads.
+        await mock.storeAsset(key: "treasure-photos::\(photoPaths[0])", data: photo0Data)
+        await mock.storeAsset(key: "treasure-photos::\(photoPaths[1])", data: photo1Data)
+        await mock.storeAsset(key: "treasure-photos::\(photoPaths[2])", data: photo2Data)
+
+        let testDefaults = UserDefaults(suiteName: "sync-cursor-test-\(UUID().uuidString)")!
+        let cursorStore = SyncCursorStore(defaults: testDefaults, keyPrefix: "test.cursor")
+
+        let engine = SyncEngine(
+            modelContext: environment.modelContext,
+            supabaseService: mock,
+            currentUserIDProvider: { userID },
+            nowProvider: { environment.now.value },
+            cursorStore: cursorStore
+        )
+
+        await engine.performFullSync(reason: .manual)
+
+        let pulledMemory = try fetchMemory(id: memoryID, in: environment.modelContext)
+        #expect(pulledMemory != nil)
+        #expect(pulledMemory?.syncState == .synced)
+        #expect(pulledMemory?.remoteVersion == 5)
+
+        // All three local images should be downloaded.
+        let localPaths = pulledMemory?.imageLocalPaths ?? []
+        #expect(localPaths.count == 3)
+
+        // Each file must exist and contain the correct data in order.
+        for (index, expectedData) in [photo0Data, photo1Data, photo2Data].enumerated() {
+            let path = localPaths[index]
+            #expect(!path.isEmpty)
+            #expect(FileManager.default.fileExists(atPath: path))
+            let storedData = FileManager.default.contents(atPath: path)
+            #expect(storedData == expectedData)
+        }
+
+        // Row must stay synced — asset download must NOT re-dirty it.
+        #expect(pulledMemory?.syncState == .synced)
+    }
+
     private func fetchBaby(id: UUID, in context: ModelContext) throws -> BabyProfile? {
         var descriptor = FetchDescriptor<BabyProfile>(predicate: #Predicate { $0.id == id })
         descriptor.fetchLimit = 1

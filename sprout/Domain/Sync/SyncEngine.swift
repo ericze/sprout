@@ -168,26 +168,67 @@ final class SyncEngine {
             upTo: upperBound
         )
 
-        // Step 4: Apply all rows.
+        // Step 4: Apply all rows (synchronous metadata write).
+        var appliedBabies: [BabyProfile] = []
         for remote in remoteBabies {
-            try apply(remote)
+            if let applied = try apply(remote) {
+                appliedBabies.append(applied)
+            }
         }
+        var appliedRecords: [RecordItem] = []
         for remote in remoteRecords {
-            try apply(remote)
+            if let applied = try apply(remote) {
+                appliedRecords.append(applied)
+            }
         }
 
         // Collect week starts from memory entries that changed during apply.
         var affectedWeekStarts = Set<Date>()
         let pullCalendar = Calendar(identifier: .gregorian)
+        var appliedMemories: [MemoryEntry] = []
 
         for remote in remoteMemories {
-            let wasInsertedOrDeleted = try apply(remote)
+            let (wasInsertedOrDeleted, applied) = try apply(remote)
+            if let applied {
+                appliedMemories.append(applied)
+            }
             if wasInsertedOrDeleted, let callback = onMemoryPulled {
                 let weekStart = pullCalendar.date(
                     from: pullCalendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: remote.createdAt)
                 ) ?? pullCalendar.startOfDay(for: remote.createdAt)
                 affectedWeekStarts.insert(weekStart)
             }
+        }
+
+        // Step 4b: Download missing assets (async, after metadata apply).
+        let assetSyncService = assetSyncServiceFactory()
+        for baby in appliedBabies {
+            let localPath = try? await assetSyncService.downloadAvatarIfNeeded(
+                userID: userID,
+                baby: baby,
+                localWritePath: baby.avatarPath
+            )
+            if let localPath {
+                baby.avatarPath = localPath
+            }
+        }
+        for record in appliedRecords {
+            let localPath = try? await assetSyncService.downloadFoodPhotoIfNeeded(
+                userID: userID,
+                record: record,
+                localWritePath: record.imageURL
+            )
+            if let localPath {
+                record.imageURL = localPath
+            }
+        }
+        for memory in appliedMemories {
+            let localPaths = (try? await assetSyncService.downloadTreasurePhotosIfNeeded(
+                userID: userID,
+                entry: memory,
+                localWritePaths: memory.imageLocalPaths
+            )) ?? memory.imageLocalPaths
+            memory.imageLocalPaths = localPaths
         }
 
         try persistModelChangesIfNeeded()
@@ -204,17 +245,19 @@ final class SyncEngine {
         cursorStore.save(cursor, for: userID)
     }
 
-    private func apply(_ remote: BabyProfileDTO) throws {
+    /// Returns the applied `BabyProfile` (or `nil` if skipped/deleted).
+    @discardableResult
+    private func apply(_ remote: BabyProfileDTO) throws -> BabyProfile? {
         let existing = try fetchLocalBaby(id: remote.id)
 
         if let existing {
             // Skip rows where local is dirty.
-            guard existing.syncState != .pendingUpsert else { return }
+            guard existing.syncState != .pendingUpsert else { return nil }
 
             // If remote is soft-deleted, remove local row.
             if remote.deletedAt != nil {
                 modelContext.delete(existing)
-                return
+                return nil
             }
 
             // Overwrite local fields with server truth.
@@ -226,9 +269,10 @@ final class SyncEngine {
             existing.remoteAvatarPath = remote.avatarStoragePath
             existing.remoteVersion = remote.version
             existing.syncState = .synced
+            return existing
         } else {
             // No local row exists. Skip if remote is soft-deleted.
-            guard remote.deletedAt == nil else { return }
+            guard remote.deletedAt == nil else { return nil }
 
             let baby = BabyProfile(
                 id: remote.id,
@@ -244,18 +288,21 @@ final class SyncEngine {
                 hasCompletedOnboarding: remote.hasCompletedOnboarding
             )
             modelContext.insert(baby)
+            return baby
         }
     }
 
-    private func apply(_ remote: RecordItemDTO) throws {
+    /// Returns the applied `RecordItem` (or `nil` if skipped/deleted).
+    @discardableResult
+    private func apply(_ remote: RecordItemDTO) throws -> RecordItem? {
         let existing = try fetchLocalRecord(id: remote.id)
 
         if let existing {
-            guard existing.syncState != .pendingUpsert else { return }
+            guard existing.syncState != .pendingUpsert else { return nil }
 
             if remote.deletedAt != nil {
                 modelContext.delete(existing)
-                return
+                return nil
             }
 
             existing.babyID = remote.babyID
@@ -271,8 +318,9 @@ final class SyncEngine {
             existing.note = remote.note
             existing.remoteVersion = remote.version
             existing.syncState = .synced
+            return existing
         } else {
-            guard remote.deletedAt == nil else { return }
+            guard remote.deletedAt == nil else { return nil }
 
             let record = RecordItem(
                 id: remote.id,
@@ -292,21 +340,23 @@ final class SyncEngine {
                 note: remote.note
             )
             modelContext.insert(record)
+            return record
         }
     }
 
-    /// Returns `true` when a memory entry was inserted, updated, or deleted
-    /// (i.e., weekly letter recompute is needed for its week).
+    /// Returns `(wasInsertedOrDeleted, appliedMemoryEntry)`.
+    /// `wasInsertedOrDeleted` is true when weekly letter recompute is needed.
+    /// `appliedMemoryEntry` is non-nil when the entry exists locally after apply.
     @discardableResult
-    private func apply(_ remote: MemoryEntryDTO) throws -> Bool {
+    private func apply(_ remote: MemoryEntryDTO) throws -> (Bool, MemoryEntry?) {
         let existing = try fetchLocalMemory(id: remote.id)
 
         if let existing {
-            guard existing.syncState != .pendingUpsert else { return false }
+            guard existing.syncState != .pendingUpsert else { return (false, nil) }
 
             if remote.deletedAt != nil {
                 modelContext.delete(existing)
-                return true
+                return (true, nil)
             }
 
             existing.babyID = remote.babyID
@@ -317,9 +367,9 @@ final class SyncEngine {
             existing.isMilestone = remote.isMilestone
             existing.remoteVersion = remote.version
             existing.syncState = .synced
-            return true
+            return (true, existing)
         } else {
-            guard remote.deletedAt == nil else { return false }
+            guard remote.deletedAt == nil else { return (false, nil) }
 
             let entry = MemoryEntry(
                 id: remote.id,
@@ -335,7 +385,7 @@ final class SyncEngine {
             )
             entry.remoteImagePaths = remote.imageStoragePaths
             modelContext.insert(entry)
-            return true
+            return (true, entry)
         }
     }
 

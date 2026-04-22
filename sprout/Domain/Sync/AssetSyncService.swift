@@ -89,6 +89,89 @@ struct AssetSyncService: Sendable {
         return remotePaths
     }
 
+    // MARK: - Download helpers
+
+    /// Downloads a remote avatar to the local BabyAvatars directory when the
+    /// remote path exists and no local file is present at `localWritePath`.
+    /// Returns the local file path after writing, or `nil` if no download was needed.
+    func downloadAvatarIfNeeded(
+        userID: UUID,
+        baby: BabyProfile,
+        localWritePath: String?
+    ) async throws -> String? {
+        guard let remotePath = baby.remoteAvatarPath?.trimmed.nilIfEmpty else {
+            return nil
+        }
+        // If a local file already exists at the known path, skip download.
+        if let existing = localWritePath?.trimmed.nilIfEmpty, fileExists(existing) {
+            return existing
+        }
+        let data = try await supabaseService.downloadAsset(bucket: .babyAvatars, path: remotePath)
+        guard !data.isEmpty else { return nil }
+        let directory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+            .appendingPathComponent("BabyAvatars", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let ext = remotePath.hasSuffix(".png") ? "png" : (remotePath.hasSuffix(".heic") ? "heic" : "jpg")
+        let localPath = directory.appendingPathComponent("avatar-\(baby.id.uuidString).\(ext)").path
+        try data.write(to: URL(fileURLWithPath: localPath), options: .atomic)
+        return localPath
+    }
+
+    /// Downloads a remote food photo when the remote path exists and the local
+    /// file is missing. Returns the local file path after writing, or `nil`.
+    func downloadFoodPhotoIfNeeded(
+        userID: UUID,
+        record: RecordItem,
+        localWritePath: String?
+    ) async throws -> String? {
+        guard let remotePath = record.remoteImagePath?.trimmed.nilIfEmpty else {
+            return nil
+        }
+        if let existing = localWritePath?.trimmed.nilIfEmpty, fileExists(existing) {
+            return existing
+        }
+        let data = try await supabaseService.downloadAsset(bucket: .foodPhotos, path: remotePath)
+        guard !data.isEmpty else { return nil }
+        let localPath = try FoodPhotoStorage.storeImageData(data)
+        return localPath
+    }
+
+    /// Downloads remote treasure photos in order when the remote paths exist
+    /// and local files are missing. Returns the array of local paths matching
+    /// the remote order. Does NOT dirty the entry.
+    func downloadTreasurePhotosIfNeeded(
+        userID: UUID,
+        entry: MemoryEntry,
+        localWritePaths: [String]
+    ) async throws -> [String] {
+        let remotePaths = entry.remoteImagePaths
+        guard !remotePaths.isEmpty else { return localWritePaths }
+
+        var result = localWritePaths
+        for (index, remotePath) in remotePaths.enumerated() {
+            let trimmedRemote = remotePath.trimmed.nilIfEmpty
+            guard trimmedRemote != nil else { continue }
+            // If a local file already exists at this index, keep it.
+            if index < result.count {
+                let existing = result[index].trimmed.nilIfEmpty
+                if let existing, fileExists(existing) {
+                    continue
+                }
+            }
+            let data = try await supabaseService.downloadAsset(bucket: .treasurePhotos, path: remotePath)
+            guard !data.isEmpty else { continue }
+            let localPath = try TreasurePhotoStorage.storeImageData(data)
+            if index < result.count {
+                result[index] = localPath
+            } else {
+                // Pad with empty strings up to this index.
+                while result.count < index { result.append("") }
+                result.append(localPath)
+            }
+        }
+        return result
+    }
+
     func deleteAssets(paths: [String], bucket: StorageBucket) async throws {
         for path in paths.map(\.trimmed).filter({ !$0.isEmpty }) {
             try await supabaseService.deleteAsset(bucket: bucket, path: path)
