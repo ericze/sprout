@@ -470,8 +470,8 @@ struct SyncEngineTests {
             timestamp: serverNow.addingTimeInterval(-200),
             type: RecordType.milk.rawValue,
             value: 90,
-            note: "local edit",
-            syncStateRaw: SyncState.pendingUpsert.rawValue
+            syncStateRaw: SyncState.pendingUpsert.rawValue,
+            note: "local edit"
         )
         environment.modelContext.insert(localRecord)
         try environment.modelContext.save()
@@ -552,9 +552,9 @@ struct SyncEngineTests {
             timestamp: serverNow.addingTimeInterval(-200),
             type: RecordType.milk.rawValue,
             value: 90,
-            note: "synced value",
             remoteVersion: 5,
-            syncStateRaw: SyncState.synced.rawValue
+            syncStateRaw: SyncState.synced.rawValue,
+            note: "synced value"
         )
         environment.modelContext.insert(localRecord)
         try environment.modelContext.save()
@@ -634,10 +634,10 @@ struct SyncEngineTests {
             babyID: babyID,
             createdAt: serverNow.addingTimeInterval(-300),
             ageInDays: 42,
-            note: "will be deleted",
-            isMilestone: false,
             remoteVersion: 5,
-            syncStateRaw: SyncState.synced.rawValue
+            syncStateRaw: SyncState.synced.rawValue,
+            note: "will be deleted",
+            isMilestone: false
         )
         environment.modelContext.insert(localRecord)
         environment.modelContext.insert(localMemory)
@@ -720,9 +720,9 @@ struct SyncEngineTests {
             babyID: babyID,
             createdAt: serverNow.addingTimeInterval(-300),
             ageInDays: 30,
+            syncStateRaw: SyncState.pendingUpsert.rawValue,
             note: "local note",
-            isMilestone: true,
-            syncStateRaw: SyncState.pendingUpsert.rawValue
+            isMilestone: true
         )
         environment.modelContext.insert(localMemory)
         try environment.modelContext.save()
@@ -905,10 +905,10 @@ struct SyncEngineTests {
             babyID: babyID,
             createdAt: memoryDate,
             ageInDays: 15,
-            note: "existing memory",
-            isMilestone: false,
             remoteVersion: 2,
-            syncStateRaw: SyncState.synced.rawValue
+            syncStateRaw: SyncState.synced.rawValue,
+            note: "existing memory",
+            isMilestone: false
         )
         environment.modelContext.insert(localMemory)
         try environment.modelContext.save()
@@ -1052,9 +1052,9 @@ struct SyncEngineTests {
             babyID: babyID,
             createdAt: memoryDate,
             ageInDays: 15,
+            syncStateRaw: SyncState.pendingUpsert.rawValue,
             note: "dirty local",
-            isMilestone: false,
-            syncStateRaw: SyncState.pendingUpsert.rawValue
+            isMilestone: false
         )
         environment.modelContext.insert(localMemory)
         try environment.modelContext.save()
