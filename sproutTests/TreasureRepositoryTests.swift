@@ -222,4 +222,43 @@ final class TreasureRepositoryTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: ownedPath))
         XCTAssertTrue(FileManager.default.fileExists(atPath: externalURL.path))
     }
+
+    func testWeeklyLetterIncludesGrowthMilestoneHighlight() throws {
+        let environment = try makeTestEnvironment(now: Date(timeIntervalSince1970: 1_710_000_000))
+        let calendar = Calendar(identifier: .gregorian)
+        let composer = WeeklyLetterComposer(calendar: calendar, language: .simplifiedChinese)
+        let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: environment.now.value))!
+
+        // Create a memory entry in the week
+        _ = try environment.treasureRepository.createMemoryEntry(
+            note: "这一周有了新变化。",
+            imageLocalPaths: [],
+            isMilestone: false,
+            createdAt: environment.now.value,
+            birthDate: HomeHeaderConfig.placeholder.birthDate
+        )
+
+        // Create a growth milestone in the same week
+        let milestone = GrowthMilestoneEntry(
+            babyID: UUID(),
+            title: "第一次翻身",
+            category: "motor",
+            occurredAt: environment.now.value
+        )
+        environment.modelContext.insert(milestone)
+        try environment.modelContext.save()
+
+        try environment.treasureRepository.syncWeeklyLetter(
+            for: weekStart,
+            composer: composer,
+            generatedAt: environment.now.value
+        )
+
+        let letters = try environment.treasureRepository.fetchWeeklyLetters()
+        XCTAssertEqual(letters.count, 1)
+
+        let letter = try XCTUnwrap(letters.first)
+        XCTAssertTrue(letter.expandedText.contains("成长里程碑"), "Letter should mention growth milestone, got: \(letter.expandedText)")
+        XCTAssertTrue(letter.expandedText.contains("第一次翻身"), "Letter should mention milestone title, got: \(letter.expandedText)")
+    }
 }

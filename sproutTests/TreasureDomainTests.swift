@@ -137,6 +137,78 @@ struct TreasureDomainTests {
         #expect(letter == nil)
     }
 
+    @Test("Weekly letter includes growth milestone highlight in English")
+    func testWeeklyLetterIncludesGrowthMilestoneHighlightEnglish() throws {
+        let weekStart = makeDate(year: 2026, month: 4, day: 6)
+        let weekEnd = makeDate(year: 2026, month: 4, day: 12)
+        let generatedAt = makeDate(year: 2026, month: 4, day: 12)
+        let entries = [
+            MemoryEntry(
+                createdAt: makeDate(year: 2026, month: 4, day: 7),
+                ageInDays: 90,
+                imageLocalPaths: [],
+                note: "A lovely day",
+                isMilestone: false
+            ),
+        ]
+        let milestones = [
+            GrowthMilestoneEntry(
+                title: "First roll",
+                category: "motor",
+                occurredAt: makeDate(year: 2026, month: 4, day: 8)
+            ),
+        ]
+
+        let composer = WeeklyLetterComposer(calendar: Self.calendar, language: .english)
+        let letter = try #require(composer.compose(
+            entries: entries,
+            milestones: milestones,
+            weekStart: weekStart,
+            weekEnd: weekEnd,
+            generatedAt: generatedAt
+        ))
+
+        #expect(letter.density == .dense)
+        #expect(letter.expandedText.contains("First roll"))
+        #expect(letter.expandedText.contains("milestone"))
+    }
+
+    @Test("Weekly letter includes growth milestone highlight in Chinese")
+    func testWeeklyLetterIncludesGrowthMilestoneHighlightChinese() throws {
+        let weekStart = makeDate(year: 2026, month: 4, day: 6)
+        let weekEnd = makeDate(year: 2026, month: 4, day: 12)
+        let generatedAt = makeDate(year: 2026, month: 4, day: 12)
+        let entries = [
+            MemoryEntry(
+                createdAt: makeDate(year: 2026, month: 4, day: 7),
+                ageInDays: 90,
+                imageLocalPaths: [],
+                note: "今天很开心",
+                isMilestone: false
+            ),
+        ]
+        let milestones = [
+            GrowthMilestoneEntry(
+                title: "第一次翻身",
+                category: "motor",
+                occurredAt: makeDate(year: 2026, month: 4, day: 8)
+            ),
+        ]
+
+        let composer = WeeklyLetterComposer(calendar: Self.calendar, language: .simplifiedChinese)
+        let letter = try #require(composer.compose(
+            entries: entries,
+            milestones: milestones,
+            weekStart: weekStart,
+            weekEnd: weekEnd,
+            generatedAt: generatedAt
+        ))
+
+        #expect(letter.density == .dense)
+        #expect(letter.expandedText.contains("成长里程碑"))
+        #expect(letter.expandedText.contains("第一次翻身"))
+    }
+
     private func makeTimelineItem(id: UUID, createdAt: Date, monthKey: String) -> TreasureTimelineItem {
         TreasureTimelineItem(
             id: id,

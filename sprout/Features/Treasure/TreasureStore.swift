@@ -102,6 +102,21 @@ extension TreasureStore {
         handle(.onAppear)
     }
 
+    func recomputeWeeklyLetter(forWeekStart weekStart: Date) {
+        guard let repository else { return }
+
+        do {
+            try repository.syncWeeklyLetter(
+                for: weekStart,
+                composer: weeklyLetterComposer,
+                generatedAt: dateProvider()
+            )
+            refreshTimeline()
+        } catch {
+            logPersistenceError(error, message: "Weekly letter recompute failed")
+        }
+    }
+
     func consumeScrollTarget() {
         viewState.scrollTargetID = nil
     }

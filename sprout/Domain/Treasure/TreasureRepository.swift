@@ -115,9 +115,11 @@ extension TreasureRepository {
         let weekEnd = calendar.date(byAdding: .day, value: 6, to: normalizedWeekStart) ?? normalizedWeekStart
 
         let entries = try fetchEntries(in: normalizedWeekStart ... weekEnd.endOfDay(calendar: calendar))
+        let milestones = try fetchMilestones(in: normalizedWeekStart ... weekEnd.endOfDay(calendar: calendar))
         let existingLetter = try fetchWeeklyLetter(for: normalizedWeekStart)
         let newLetter = composer.compose(
             entries: entries,
+            milestones: milestones,
             weekStart: normalizedWeekStart,
             weekEnd: weekEnd,
             generatedAt: generatedAt
@@ -148,6 +150,16 @@ extension TreasureRepository {
                 item.createdAt >= range.lowerBound && item.createdAt <= range.upperBound
             },
             sortBy: [SortDescriptor(\.createdAt, order: .forward)]
+        )
+        return try modelContext.fetch(descriptor)
+    }
+
+    private func fetchMilestones(in range: ClosedRange<Date>) throws -> [GrowthMilestoneEntry] {
+        let descriptor = FetchDescriptor<GrowthMilestoneEntry>(
+            predicate: #Predicate<GrowthMilestoneEntry> { item in
+                item.occurredAt >= range.lowerBound && item.occurredAt <= range.upperBound
+            },
+            sortBy: [SortDescriptor(\.occurredAt, order: .forward)]
         )
         return try modelContext.fetch(descriptor)
     }

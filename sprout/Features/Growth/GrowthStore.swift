@@ -10,6 +10,7 @@ final class GrowthStore {
 
     var headerConfig: HomeHeaderConfig
     @ObservationIgnored let textRenderer: GrowthTextRenderer
+    @ObservationIgnored var onMilestoneChanged: ((Date) -> Void)?
 
     @ObservationIgnored private var repository: GrowthRecordRepository?
     @ObservationIgnored private var milestoneRepository: GrowthMilestoneRepository?
@@ -510,6 +511,7 @@ extension GrowthStore {
                 viewState.milestoneSheetState = .closed
                 refreshMilestones()
                 showUndoToast(recordID: entry.id, message: textRenderer.milestoneUndoMessage())
+                notifyMilestoneChanged(at: draft.occurredAt)
 
             case let .edit(existingEntry):
                 try milestoneRepository.updateMilestone(
@@ -520,6 +522,10 @@ extension GrowthStore {
                 )
                 viewState.milestoneSheetState = .closed
                 refreshMilestones()
+                notifyMilestoneChanged(at: existingEntry.occurredAt)
+                if draft.occurredAt != existingEntry.occurredAt {
+                    notifyMilestoneChanged(at: draft.occurredAt)
+                }
 
             case .closed:
                 break
@@ -541,12 +547,19 @@ extension GrowthStore {
         guard let milestoneRepository else { return }
 
         do {
+            let occurredAt: Date?
             if let entry = try milestoneRepository.fetchMilestone(id: id) {
                 lastDeletedMilestone = entry
+                occurredAt = entry.occurredAt
+            } else {
+                occurredAt = nil
             }
             try milestoneRepository.deleteMilestone(id: id)
             refreshMilestones()
             showUndoToast(recordID: id, message: textRenderer.milestoneUndoMessage())
+            if let date = occurredAt {
+                notifyMilestoneChanged(at: date)
+            }
         } catch {
             logPersistenceError(error, message: "Milestone delete failed")
             showMessageToast(
@@ -578,6 +591,7 @@ extension GrowthStore {
             dismissUndoToast()
             // Update the milestones list to reflect the restored entry
             refreshMilestones()
+            notifyMilestoneChanged(at: entry.occurredAt)
             _ = restored
         } catch {
             logPersistenceError(error, message: "Milestone undo failed")
@@ -587,6 +601,12 @@ extension GrowthStore {
     private func dismissMilestoneUndo() {
         lastDeletedMilestone = nil
         dismissUndoToast()
+    }
+
+    private func notifyMilestoneChanged(at date: Date) {
+        let components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date)
+        guard let weekStart = calendar.date(from: components) else { return }
+        onMilestoneChanged?(calendar.startOfDay(for: weekStart))
     }
 
     private func logPersistenceError(_ error: Error, message: String) {
