@@ -122,6 +122,10 @@ struct ContentView: View {
             growth.configure(modelContext: modelContext)
             treasure.configure(modelContext: modelContext)
 
+            growth.onMilestoneChanged = { weekStart in
+                treasure.recomputeWeeklyLetter(forWeekStart: weekStart)
+            }
+
             homeStore.onAppear()
             growth.onAppear()
             treasure.onAppear()

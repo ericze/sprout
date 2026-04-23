@@ -22,7 +22,7 @@ struct TreasureTimelineList: View {
     @ViewBuilder
     private func card(for item: TreasureTimelineItem) -> some View {
         switch item.type {
-        case .memory, .milestone:
+        case .memory, .milestone, .growthMilestone:
             TreasureMemoryCard(item: item)
         case .weeklyLetterSilent, .weeklyLetterNormal, .weeklyLetterDense:
             TreasureWeeklyLetterCard(item: item, onTap: {

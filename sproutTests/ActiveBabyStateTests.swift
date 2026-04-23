@@ -29,7 +29,7 @@ struct ActiveBabyStateTests {
     @Test("updateFrom nil returns placeholder")
     func testUpdateFromNil() {
         let state = ActiveBabyState()
-        state.headerConfig = HomeHeaderConfig(babyName: "旧名字", birthDate: .now)
+        state.headerConfig = HomeHeaderConfig(babyName: "旧名字", birthDate: .now, babyID: UUID())
 
         state.updateFrom(nil as BabyProfile?)
 

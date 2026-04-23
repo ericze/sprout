@@ -152,6 +152,7 @@ enum SproutSchemaV2: VersionedSchema {
             WeeklyLetter.self,
             BabyProfile.self,
             SyncDeletionTombstone.self,
+            GrowthMilestoneEntry.self,
         ]
     }
 }

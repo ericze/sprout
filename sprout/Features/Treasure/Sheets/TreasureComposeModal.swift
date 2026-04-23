@@ -166,11 +166,6 @@ struct TreasureComposeModal: View {
                             ),
                             isFocused: $isNoteFocused
                         )
-
-                        TreasureComposeMilestoneToggle(
-                            isOn: store.viewState.composeDraft.isMilestone,
-                            onToggle: { store.handle(.toggleMilestone) }
-                        )
                     }
                     .padding(.horizontal, AppTheme.Spacing.screenHorizontal)
                     .padding(.bottom, 36)

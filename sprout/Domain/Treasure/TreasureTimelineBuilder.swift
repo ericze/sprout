@@ -11,11 +11,13 @@ struct TreasureTimelineBuilder {
 
     func makeTimelineItems(
         entries: [MemoryEntry],
-        weeklyLetters: [WeeklyLetter]
+        weeklyLetters: [WeeklyLetter],
+        milestones: [GrowthMilestoneEntry] = []
     ) -> [TreasureTimelineItem] {
         let memoryItems = entries.compactMap(makeMemoryItem)
         let letterItems = weeklyLetters.map(makeWeeklyLetterItem)
-        return (memoryItems + letterItems).sorted { lhs, rhs in
+        let milestoneItems = milestones.map(makeGrowthMilestoneItem)
+        return (memoryItems + letterItems + milestoneItems).sorted { lhs, rhs in
             if lhs.createdAt == rhs.createdAt {
                 return lhs.id.uuidString > rhs.id.uuidString
             }
@@ -43,6 +45,7 @@ struct TreasureTimelineBuilder {
             note: note,
             hasImageLoadError: hasImageLoadError,
             isMilestone: entry.isMilestone,
+            milestoneTitle: nil,
             letterDensity: nil,
             collapsedText: nil,
             expandedText: nil,
@@ -73,11 +76,37 @@ struct TreasureTimelineBuilder {
             note: nil,
             hasImageLoadError: false,
             isMilestone: false,
+            milestoneTitle: nil,
             letterDensity: letter.density,
             collapsedText: letter.collapsedText,
             expandedText: letter.expandedText,
             weekStart: letter.weekStart,
             weekEnd: letter.weekEnd
+        )
+    }
+
+    private func makeGrowthMilestoneItem(milestone: GrowthMilestoneEntry) -> TreasureTimelineItem {
+        let imageLocalPaths: [String] = {
+            guard let path = milestone.imageLocalPath else { return [] }
+            return fileManager.fileExists(atPath: path) ? [path] : []
+        }()
+
+        return TreasureTimelineItem(
+            id: milestone.id,
+            type: .growthMilestone,
+            createdAt: milestone.occurredAt,
+            monthKey: monthKey(for: milestone.occurredAt),
+            ageInDays: nil,
+            imageLocalPaths: imageLocalPaths,
+            note: milestone.note,
+            hasImageLoadError: milestone.imageLocalPath != nil && imageLocalPaths.isEmpty,
+            isMilestone: false,
+            milestoneTitle: milestone.title,
+            letterDensity: nil,
+            collapsedText: nil,
+            expandedText: nil,
+            weekStart: nil,
+            weekEnd: nil
         )
     }
 

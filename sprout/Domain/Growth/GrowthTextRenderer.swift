@@ -192,6 +192,15 @@ struct GrowthTextRenderer {
         )
     }
 
+    func milestoneUndoMessage() -> String {
+        L10n.text(
+            "growth.milestone.undo",
+            service: localizationService,
+            en: "Milestone saved",
+            zh: "里程碑已记录"
+        )
+    }
+
     func unavailableMessage() -> String {
         L10n.text(
             "growth.error.unavailable",

@@ -25,6 +25,12 @@ struct GrowthModuleContainer: View {
                     onToggle: { store.handle(.toggleAIState) }
                 )
 
+                GrowthMilestoneTimeline(
+                    milestones: store.viewState.milestones,
+                    onAdd: { store.handle(.tapAddMilestone) },
+                    onEdit: { store.handle(.tapEditMilestone($0)) }
+                )
+
                 Spacer(minLength: 140)
             }
             .padding(.horizontal, AppTheme.Spacing.screenHorizontal)
@@ -38,6 +44,12 @@ struct GrowthModuleContainer: View {
                 .presentationDragIndicator(.visible)
                 .presentationBackground(AppTheme.Colors.background)
         }
+        .sheet(isPresented: milestoneSheetBinding) {
+            GrowthMilestoneEntrySheet(store: store)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(AppTheme.Colors.background)
+        }
     }
 
     private var sheetBinding: Binding<Bool> {
@@ -46,6 +58,17 @@ struct GrowthModuleContainer: View {
             set: { isPresented in
                 if !isPresented {
                     store.handle(.dismissSheet)
+                }
+            }
+        )
+    }
+
+    private var milestoneSheetBinding: Binding<Bool> {
+        Binding(
+            get: { store.viewState.milestoneSheetState.isPresented },
+            set: { isPresented in
+                if !isPresented {
+                    store.handle(.dismissMilestoneSheet)
                 }
             }
         )

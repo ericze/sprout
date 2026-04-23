@@ -18,6 +18,7 @@ struct WeeklyLetterComposer {
 
     func compose(
         entries: [MemoryEntry],
+        milestones: [GrowthMilestoneEntry] = [],
         weekStart: Date,
         weekEnd: Date,
         generatedAt: Date
@@ -30,14 +31,20 @@ struct WeeklyLetterComposer {
         }
         let textCount = normalizedEntries.filter { !($0.note?.trimmed.isEmpty ?? true) }.count
         let milestoneCount = normalizedEntries.filter(\.isMilestone).count
-        let density = makeDensity(entryCount: normalizedEntries.count, milestoneCount: milestoneCount)
+        let growthMilestoneCount = milestones.count
+        let density = makeDensity(
+            entryCount: normalizedEntries.count,
+            milestoneCount: milestoneCount,
+            growthMilestoneCount: growthMilestoneCount
+        )
         let collapsedText = makeCollapsedText(for: density)
         let expandedText = makeExpandedText(
             density: density,
             entries: normalizedEntries,
             photoCount: photoCount,
             textCount: textCount,
-            milestoneCount: milestoneCount
+            milestoneCount: milestoneCount,
+            growthMilestones: milestones
         )
 
         guard isAllowed(collapsedText, density: density, isCollapsed: true),
@@ -55,8 +62,8 @@ struct WeeklyLetterComposer {
         )
     }
 
-    private func makeDensity(entryCount: Int, milestoneCount: Int) -> WeeklyLetterDensity {
-        if milestoneCount > 0 || entryCount >= 5 {
+    private func makeDensity(entryCount: Int, milestoneCount: Int, growthMilestoneCount: Int = 0) -> WeeklyLetterDensity {
+        if milestoneCount > 0 || growthMilestoneCount > 0 || entryCount >= 5 {
             return .dense
         }
         if (2...4).contains(entryCount) {
@@ -93,7 +100,8 @@ struct WeeklyLetterComposer {
         entries: [MemoryEntry],
         photoCount: Int,
         textCount: Int,
-        milestoneCount: Int
+        milestoneCount: Int,
+        growthMilestones: [GrowthMilestoneEntry] = []
     ) -> String {
         let firstNoteSnippet = entries
             .compactMap { $0.note?.trimmed.nilIfEmpty }
@@ -108,7 +116,8 @@ struct WeeklyLetterComposer {
                 photoCount: photoCount,
                 textCount: textCount,
                 milestoneCount: milestoneCount,
-                firstNoteSnippet: firstNoteSnippet
+                firstNoteSnippet: firstNoteSnippet,
+                growthMilestones: growthMilestones
             )
         case .simplifiedChinese:
             return makeChineseExpandedText(
@@ -117,7 +126,8 @@ struct WeeklyLetterComposer {
                 photoCount: photoCount,
                 textCount: textCount,
                 milestoneCount: milestoneCount,
-                firstNoteSnippet: firstNoteSnippet
+                firstNoteSnippet: firstNoteSnippet,
+                growthMilestones: growthMilestones
             )
         }
     }
@@ -128,10 +138,16 @@ struct WeeklyLetterComposer {
         photoCount: Int,
         textCount: Int,
         milestoneCount: Int,
-        firstNoteSnippet: String
+        firstNoteSnippet: String,
+        growthMilestones: [GrowthMilestoneEntry] = []
     ) -> String {
+        let growthSummary = makeGrowthMilestoneSummaryEnglish(growthMilestones)
+
         switch density {
         case .silent:
+            if let summary = growthSummary {
+                return "One memory, quietly kept. \(summary)"
+            }
             return "One memory, quietly kept."
         case .normal:
             var parts = ["\(entries.count) memories this week"]
@@ -142,6 +158,9 @@ struct WeeklyLetterComposer {
                 parts.append("\(textCount) note\(textCount == 1 ? "" : "s")")
             }
             let joined = parts.joined(separator: ", ")
+            if let summary = growthSummary {
+                return "\(joined). \(summary) Small moments stayed here, gently and without hurry."
+            }
             return "\(joined). Small moments stayed here, gently and without hurry."
         case .dense:
             var header = "More than usual this week."
@@ -155,6 +174,9 @@ struct WeeklyLetterComposer {
             } else {
                 ending = "A moment like \"\(firstNoteSnippet)\" stays safely here."
             }
+            if let summary = growthSummary {
+                return "\(header) \(body) \(summary) \(ending)"
+            }
             return "\(header) \(body) \(ending)"
         }
     }
@@ -165,10 +187,16 @@ struct WeeklyLetterComposer {
         photoCount: Int,
         textCount: Int,
         milestoneCount: Int,
-        firstNoteSnippet: String
+        firstNoteSnippet: String,
+        growthMilestones: [GrowthMilestoneEntry] = []
     ) -> String {
+        let growthSummary = makeGrowthMilestoneSummaryChinese(growthMilestones)
+
         switch density {
         case .silent:
+            if let summary = growthSummary {
+                return "这一周只留下一条记忆，安静收好。\(summary)"
+            }
             return "这一周只留下一条记忆，安静收好。"
         case .normal:
             var segments = ["这一周留下了 \(entries.count) 条记忆"]
@@ -179,6 +207,9 @@ struct WeeklyLetterComposer {
                 segments.append("\(textCount) 段文字")
             }
             let joined = segments.joined(separator: "，")
+            if let summary = growthSummary {
+                return "\(joined)。\(summary)几件小事安静地留了下来，时间也在这些片刻里慢慢往前。"
+            }
             return "\(joined)。几件小事安静地留了下来，时间也在这些片刻里慢慢往前。"
         case .dense:
             var prefix = "这一周比平时更满一些。"
@@ -191,10 +222,30 @@ struct WeeklyLetterComposer {
             if firstNoteSnippet.isEmpty {
                 ending = "它们不需要被张扬，只要在翻到这里时能被重新看见。"
             } else {
-                ending = "像“\(firstNoteSnippet)”这样的片刻，也被稳稳留了下来。"
+                ending = "像\u{201C}\(firstNoteSnippet)\u{201D}这样的片刻，也被稳稳留了下来。"
+            }
+            if let summary = growthSummary {
+                return "\(prefix)\(middle)\(summary)\(ending)"
             }
             return "\(prefix)\(middle)\(ending)"
         }
+    }
+
+    private func makeGrowthMilestoneSummaryEnglish(_ milestones: [GrowthMilestoneEntry]) -> String? {
+        guard !milestones.isEmpty else { return nil }
+        let titles = milestones.map(\.title).prefix(3).joined(separator: ", ")
+        let count = milestones.count
+        if count == 1 {
+            return "A milestone reached: \(titles)."
+        }
+        return "\(count) milestones reached: \(titles)."
+    }
+
+    private func makeGrowthMilestoneSummaryChinese(_ milestones: [GrowthMilestoneEntry]) -> String? {
+        guard !milestones.isEmpty else { return nil }
+        let titles = milestones.map(\.title).prefix(3).joined(separator: "、")
+        let count = milestones.count
+        return "本周宝宝达成了 \(count) 个成长里程碑：\(titles)。"
     }
 
     private func isAllowed(_ text: String, density: WeeklyLetterDensity, isCollapsed: Bool) -> Bool {
@@ -207,11 +258,11 @@ struct WeeklyLetterComposer {
         } else {
             switch density {
             case .silent:
-                maxLength = 30
-            case .normal:
                 maxLength = 100
+            case .normal:
+                maxLength = 200
             case .dense:
-                maxLength = 250
+                maxLength = 350
             }
         }
 

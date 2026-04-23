@@ -16,6 +16,14 @@ struct TreasureMemoryCard: View {
                     .tracking(0.4)
                     .foregroundStyle(TreasureTheme.textSecondary)
 
+                if let milestoneTitle = item.milestoneTitle {
+                    Text(milestoneTitle)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(TreasureTheme.textPrimary)
+                        .lineSpacing(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
                 if let note = item.note?.trimmed.nilIfEmpty {
                     Text(note)
                         .font(.system(size: 18, weight: .semibold))
@@ -35,7 +43,7 @@ struct TreasureMemoryCard: View {
         .background {
             ZStack {
                 TreasureTheme.paperWhite
-                if item.isMilestone {
+                if item.isMilestone || item.isGrowthMilestone {
                     TreasureTheme.terracottaGlow
                 }
             }
@@ -53,7 +61,7 @@ struct TreasureMemoryCard: View {
     private var metaText: String {
         let formatter = TreasureTimestampFormatter.shared
         let timestamp = formatter.string(from: item.createdAt, ageInDays: item.ageInDays)
-        return item.isMilestone ? "★ \(timestamp)" : timestamp
+        return (item.isMilestone || item.isGrowthMilestone) ? "★ \(timestamp)" : timestamp
     }
 }
 

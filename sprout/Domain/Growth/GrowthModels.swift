@@ -218,6 +218,9 @@ struct GrowthViewState: Equatable {
     var hasLoadedInitialData = false
     var currentAgeInDays = 0
     var errorMessage: String?
+    var milestones: [GrowthMilestoneEntry] = []
+    var milestoneSheetState: GrowthMilestoneSheetState = .closed
+    var milestoneDraft = GrowthMilestoneDraft()
 
     var isPrecisionVisible: Bool {
         chartInteractionState != .idle
@@ -241,4 +244,31 @@ enum GrowthAction {
     case beginScrubbing(locationX: CGFloat, plotWidth: CGFloat)
     case updateScrubbing(locationX: CGFloat, plotWidth: CGFloat)
     case endScrubbing
+    case tapAddMilestone
+    case tapEditMilestone(GrowthMilestoneEntry)
+    case dismissMilestoneSheet
+    case updateMilestoneDraft(GrowthMilestoneDraft)
+    case saveMilestone
+    case deleteMilestone(UUID)
+    case undoDeletedMilestone
+    case dismissMilestoneUndo
+}
+
+struct GrowthMilestoneDraft: Equatable {
+    var id: UUID = UUID()
+    var templateKey: String?
+    var customTitle: String = ""
+    var category: GrowthMilestoneCategory = .motor
+    var occurredAt: Date = .now
+    var note: String = ""
+    var imageLocalPath: String?
+    var isCustom: Bool = false
+}
+
+enum GrowthMilestoneSheetState: Equatable {
+    case closed
+    case add
+    case edit(GrowthMilestoneEntry)
+
+    var isPresented: Bool { self != .closed }
 }

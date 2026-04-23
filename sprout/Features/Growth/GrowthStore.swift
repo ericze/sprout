@@ -10,8 +10,11 @@ final class GrowthStore {
 
     var headerConfig: HomeHeaderConfig
     @ObservationIgnored let textRenderer: GrowthTextRenderer
+    @ObservationIgnored var onMilestoneChanged: ((Date) -> Void)?
 
     @ObservationIgnored private var repository: GrowthRecordRepository?
+    @ObservationIgnored private var milestoneRepository: GrowthMilestoneRepository?
+    @ObservationIgnored private var lastDeletedMilestone: GrowthMilestoneEntry?
     @ObservationIgnored private let formatter: GrowthFormatter
     @ObservationIgnored private let localizationService: LocalizationService
     @ObservationIgnored private let referenceRangeStore: GrowthReferenceRangeStore
@@ -67,8 +70,12 @@ extension GrowthStore {
     }
 
     func configure(modelContext: ModelContext) {
-        guard repository == nil else { return }
-        repository = GrowthRecordRepository(modelContext: modelContext)
+        if repository == nil {
+            repository = GrowthRecordRepository(modelContext: modelContext)
+        }
+        if milestoneRepository == nil {
+            milestoneRepository = GrowthMilestoneRepository(modelContext: modelContext)
+        }
     }
 
     func updateHeaderConfig(_ config: HomeHeaderConfig) {
@@ -90,6 +97,7 @@ extension GrowthStore {
             guard !viewState.hasLoadedInitialData else { return }
             viewState.currentMetric = metricPreferenceStore.load() ?? .height
             refreshCurrentMetric()
+            refreshMilestones()
             viewState.hasLoadedInitialData = true
 
         case let .selectMetric(metric):
@@ -146,6 +154,41 @@ extension GrowthStore {
 
         case .endScrubbing:
             endScrubbing()
+
+        case .tapAddMilestone:
+            viewState.milestoneDraft = GrowthMilestoneDraft()
+            viewState.milestoneSheetState = .add
+
+        case let .tapEditMilestone(entry):
+            viewState.milestoneDraft = GrowthMilestoneDraft(
+                id: entry.id,
+                templateKey: entry.templateKey,
+                customTitle: entry.title,
+                category: GrowthMilestoneCategory(rawValue: entry.category) ?? .motor,
+                occurredAt: entry.occurredAt,
+                note: entry.note ?? "",
+                imageLocalPath: entry.imageLocalPath,
+                isCustom: entry.isCustom
+            )
+            viewState.milestoneSheetState = .edit(entry)
+
+        case .dismissMilestoneSheet:
+            viewState.milestoneSheetState = .closed
+
+        case let .updateMilestoneDraft(draft):
+            viewState.milestoneDraft = draft
+
+        case .saveMilestone:
+            saveMilestone()
+
+        case let .deleteMilestone(id):
+            deleteMilestone(id: id)
+
+        case .undoDeletedMilestone:
+            undoDeletedMilestone()
+
+        case .dismissMilestoneUndo:
+            dismissMilestoneUndo()
         }
     }
 
@@ -437,6 +480,133 @@ extension GrowthStore {
         messageDismissTask?.cancel()
         messageDismissTask = nil
         viewState.messageToast = nil
+    }
+
+    private func refreshMilestones() {
+        guard let milestoneRepository else { return }
+        do {
+            viewState.milestones = try milestoneRepository.fetchMilestones(for: headerConfig.babyID)
+        } catch {
+            logPersistenceError(error, message: "Milestone refresh failed")
+        }
+    }
+
+    private func saveMilestone() {
+        guard let milestoneRepository else { return }
+        let draft = viewState.milestoneDraft
+
+        do {
+            switch viewState.milestoneSheetState {
+            case .add:
+                let entry = try milestoneRepository.createMilestone(
+                    babyID: headerConfig.babyID,
+                    title: draft.isCustom ? draft.customTitle : (draft.templateKey ?? draft.customTitle),
+                    templateKey: draft.templateKey,
+                    category: draft.category.rawValue,
+                    occurredAt: draft.occurredAt,
+                    note: draft.note.isEmpty ? nil : draft.note,
+                    imageLocalPath: draft.imageLocalPath,
+                    isCustom: draft.isCustom
+                )
+                viewState.milestoneSheetState = .closed
+                refreshMilestones()
+                showUndoToast(recordID: entry.id, message: textRenderer.milestoneUndoMessage())
+                notifyMilestoneChanged(at: draft.occurredAt)
+
+            case let .edit(existingEntry):
+                try milestoneRepository.updateMilestone(
+                    existingEntry,
+                    title: draft.isCustom ? draft.customTitle : (draft.templateKey ?? draft.customTitle),
+                    note: draft.note.isEmpty ? nil : draft.note,
+                    occurredAt: draft.occurredAt
+                )
+                viewState.milestoneSheetState = .closed
+                refreshMilestones()
+                notifyMilestoneChanged(at: existingEntry.occurredAt)
+                if draft.occurredAt != existingEntry.occurredAt {
+                    notifyMilestoneChanged(at: draft.occurredAt)
+                }
+
+            case .closed:
+                break
+            }
+        } catch {
+            logPersistenceError(error, message: "Milestone save failed")
+            showMessageToast(
+                L10n.text(
+                    "growth.milestone.error.save",
+                    service: localizationService,
+                    en: "Couldn't save this milestone. Try again.",
+                    zh: "里程碑保存失败，请重试。"
+                )
+            )
+        }
+    }
+
+    private func deleteMilestone(id: UUID) {
+        guard let milestoneRepository else { return }
+
+        do {
+            let occurredAt: Date?
+            if let entry = try milestoneRepository.fetchMilestone(id: id) {
+                lastDeletedMilestone = entry
+                occurredAt = entry.occurredAt
+            } else {
+                occurredAt = nil
+            }
+            try milestoneRepository.deleteMilestone(id: id)
+            refreshMilestones()
+            showUndoToast(recordID: id, message: textRenderer.milestoneUndoMessage())
+            if let date = occurredAt {
+                notifyMilestoneChanged(at: date)
+            }
+        } catch {
+            logPersistenceError(error, message: "Milestone delete failed")
+            showMessageToast(
+                L10n.text(
+                    "growth.milestone.error.delete",
+                    service: localizationService,
+                    en: "Couldn't delete this milestone. Try again.",
+                    zh: "里程碑删除失败，请重试。"
+                )
+            )
+        }
+    }
+
+    private func undoDeletedMilestone() {
+        guard let milestoneRepository, let entry = lastDeletedMilestone else { return }
+
+        do {
+            let restored = try milestoneRepository.createMilestone(
+                babyID: entry.babyID,
+                title: entry.title,
+                templateKey: entry.templateKey,
+                category: entry.category,
+                occurredAt: entry.occurredAt,
+                note: entry.note,
+                imageLocalPath: entry.imageLocalPath,
+                isCustom: entry.isCustom
+            )
+            lastDeletedMilestone = nil
+            dismissUndoToast()
+            // Update the milestones list to reflect the restored entry
+            refreshMilestones()
+            notifyMilestoneChanged(at: entry.occurredAt)
+            _ = restored
+        } catch {
+            logPersistenceError(error, message: "Milestone undo failed")
+        }
+    }
+
+    private func dismissMilestoneUndo() {
+        lastDeletedMilestone = nil
+        dismissUndoToast()
+    }
+
+    private func notifyMilestoneChanged(at date: Date) {
+        let components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date)
+        guard let weekStart = calendar.date(from: components) else { return }
+        onMilestoneChanged?(calendar.startOfDay(for: weekStart))
     }
 
     private func logPersistenceError(_ error: Error, message: String) {

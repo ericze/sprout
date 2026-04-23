@@ -14,6 +14,7 @@ enum WeeklyLetterDensity: String, Codable, CaseIterable {
 enum TreasureTimelineItemType: Equatable {
     case memory
     case milestone
+    case growthMilestone
     case weeklyLetterSilent
     case weeklyLetterNormal
     case weeklyLetterDense
@@ -29,6 +30,7 @@ struct TreasureTimelineItem: Identifiable, Equatable {
     let note: String?
     let hasImageLoadError: Bool
     let isMilestone: Bool
+    let milestoneTitle: String?
     let letterDensity: WeeklyLetterDensity?
     let collapsedText: String?
     let expandedText: String?
@@ -41,6 +43,10 @@ struct TreasureTimelineItem: Identifiable, Equatable {
 
     var canOpenWeeklyLetter: Bool {
         type == .weeklyLetterNormal || type == .weeklyLetterDense
+    }
+
+    var isGrowthMilestone: Bool {
+        type == .growthMilestone
     }
 }
 
