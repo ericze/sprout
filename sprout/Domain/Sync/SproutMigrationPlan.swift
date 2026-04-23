@@ -157,6 +157,20 @@ enum SproutSchemaV2: VersionedSchema {
     }
 }
 
+enum SproutSchemaV3: VersionedSchema {
+    static var versionIdentifier = Schema.Version(3, 0, 0)
+
+    static var models: [any PersistentModel.Type] {
+        [
+            RecordItem.self,
+            MemoryEntry.self,
+            WeeklyLetter.self,
+            BabyProfile.self,
+            SyncDeletionTombstone.self,
+        ]
+    }
+}
+
 enum SproutMigrationPlan: SchemaMigrationPlan {
     private static let emptyUUID = UUID(uuidString: "00000000-0000-0000-0000-000000000000")!
 
@@ -164,12 +178,14 @@ enum SproutMigrationPlan: SchemaMigrationPlan {
         [
             SproutSchemaV1.self,
             SproutSchemaV2.self,
+            SproutSchemaV3.self,
         ]
     }
 
     static var stages: [MigrationStage] {
         [
             migrateV1toV2,
+            migrateV2toV3,
         ]
     }
 
@@ -182,6 +198,11 @@ enum SproutMigrationPlan: SchemaMigrationPlan {
         didMigrate: { context in
             try normalizeMigratedRows(in: context)
         }
+    )
+
+    static let migrateV2toV3 = MigrationStage.lightweight(
+        fromVersion: SproutSchemaV2.self,
+        toVersion: SproutSchemaV3.self
     )
 
     private static func normalizeMigratedRows(in context: ModelContext) throws {
@@ -274,11 +295,11 @@ enum SproutMigrationPlan: SchemaMigrationPlan {
 
 enum SproutSchemaRegistry {
     static var models: [any PersistentModel.Type] {
-        SproutSchemaV2.models
+        SproutSchemaV3.models
     }
 
     static var schema: Schema {
-        Schema(SproutSchemaV2.models, version: SproutSchemaV2.versionIdentifier)
+        Schema(SproutSchemaV3.models, version: SproutSchemaV3.versionIdentifier)
     }
 }
 

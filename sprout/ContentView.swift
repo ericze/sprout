@@ -119,6 +119,7 @@ struct ContentView: View {
             let treasure = TreasureStore(headerConfig: headerConfig)
 
             homeStore.configure(modelContext: modelContext)
+            homeStore.configure(aiService: MockFoodAIAssistService())
             growth.configure(modelContext: modelContext)
             treasure.configure(modelContext: modelContext)
 
@@ -216,9 +217,10 @@ private struct AppLaunchOverrides {
     private func clearGrowthRecords(from modelContext: ModelContext) throws {
         let heightType = RecordType.height.rawValue
         let weightType = RecordType.weight.rawValue
+        let headCircumferenceType = RecordType.headCircumference.rawValue
         let descriptor = FetchDescriptor<RecordItem>(
             predicate: #Predicate<RecordItem> { item in
-                item.type == heightType || item.type == weightType
+                item.type == heightType || item.type == weightType || item.type == headCircumferenceType
             }
         )
         let existingRecords = try modelContext.fetch(descriptor)

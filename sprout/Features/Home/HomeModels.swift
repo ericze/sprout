@@ -51,7 +51,7 @@ enum RecordEditorType: String, CaseIterable, Equatable, Identifiable {
             self = .sleep
         case .food:
             self = .food
-        case .height, .weight:
+        case .height, .weight, .headCircumference:
             return nil
         }
     }
@@ -203,6 +203,7 @@ struct HomeViewState {
     var isLoadingHistory = false
     var hasLoadedInitialData = false
     var hasMoreHistory = true
+    var foodAIState: FoodAIState = .idle
 
     var timelineItems: [TimelineDisplayItem] {
         todayDisplayItems + historyDisplayItems
@@ -212,6 +213,23 @@ struct HomeViewState {
 struct FoodFirstTasteHint: Equatable {
     let tags: [String]
     let message: String
+}
+
+enum FoodAIState: Equatable {
+    case idle
+    case loading
+    case suggestion(FoodAISuggestionResult)
+    case failed(String)
+
+    var isLoading: Bool {
+        if case .loading = self { return true }
+        return false
+    }
+
+    var hasSuggestion: Bool {
+        if case .suggestion = self { return true }
+        return false
+    }
 }
 
 struct FoodDraftState {

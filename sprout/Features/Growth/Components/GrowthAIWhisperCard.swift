@@ -9,7 +9,7 @@ struct GrowthAIWhisperCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .top) {
-                Text(L10n.text("growth.ai.title", en: "AI Notes", zh: "AI 客观解读"))
+                Text(L10n.text("growth.ai.title", en: "Growth Insight", zh: "成长解读"))
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(AppTheme.Colors.secondaryText)
 

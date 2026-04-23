@@ -3,6 +3,7 @@ import SwiftUI
 struct TreasureWeeklyLetterSheet: View {
     let item: TreasureTimelineItem
     let onClose: () -> Void
+    let onRegenerate: () -> Void
     private let localizationService = LocalizationService.current
 
     var body: some View {
@@ -24,6 +25,17 @@ struct TreasureWeeklyLetterSheet: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 12)
             }
+        } footer: {
+            Button(action: onRegenerate) {
+                Text(L10n.text("treasure.letter.regenerate", en: "Regenerate", zh: "重新生成"))
+                    .font(AppTheme.Typography.primaryButton)
+                    .foregroundStyle(AppTheme.Colors.primaryText)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 54)
+                    .background(AppTheme.Colors.primaryText.opacity(0.08))
+                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            }
+            .buttonStyle(.plain)
         }
     }
 

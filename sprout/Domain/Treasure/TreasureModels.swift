@@ -181,4 +181,5 @@ enum TreasureAction {
     case beginMonthScrubbing(height: CGFloat, locationY: CGFloat)
     case updateMonthScrubbing(height: CGFloat, locationY: CGFloat)
     case endMonthScrubbing
+    case regenerateWeeklyLetter(TreasureTimelineItem)
 }

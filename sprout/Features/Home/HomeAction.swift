@@ -31,4 +31,8 @@ enum HomeAction {
     case dismissUndo
     case dismissMessage
     case loadMoreIfNeeded(UUID)
+    case tapFoodAISuggest
+    case applyFoodAISuggestion
+    case dismissFoodAISuggestion
+    case retryFoodAISuggestion
 }

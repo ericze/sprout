@@ -15,7 +15,9 @@ final class GrowthStore {
     @ObservationIgnored private var repository: GrowthRecordRepository?
     @ObservationIgnored private var milestoneRepository: GrowthMilestoneRepository?
     @ObservationIgnored private var lastDeletedMilestone: GrowthMilestoneEntry?
+    @ObservationIgnored private weak var modelContext: ModelContext?
     @ObservationIgnored private let formatter: GrowthFormatter
+    @ObservationIgnored private let summaryBuilder: GrowthSummaryBuilder
     @ObservationIgnored private let localizationService: LocalizationService
     @ObservationIgnored private let referenceRangeStore: GrowthReferenceRangeStore
     @ObservationIgnored private let metricPreferenceStore: GrowthMetricPreferenceStore
@@ -31,6 +33,7 @@ final class GrowthStore {
         headerConfig: HomeHeaderConfig,
         repository: GrowthRecordRepository? = nil,
         formatter: GrowthFormatter? = nil,
+        summaryBuilder: GrowthSummaryBuilder? = nil,
         localizationService: LocalizationService? = nil,
         textRenderer: GrowthTextRenderer? = nil,
         referenceRangeStore: GrowthReferenceRangeStore = GrowthReferenceRangeStore(),
@@ -43,6 +46,7 @@ final class GrowthStore {
         let resolvedLocalizationService = localizationService ?? .current
         self.headerConfig = headerConfig
         self.repository = repository
+        self.summaryBuilder = summaryBuilder ?? GrowthSummaryBuilder(calendar: calendar)
         self.localizationService = resolvedLocalizationService
         self.formatter = formatter ?? GrowthFormatter(calendar: calendar)
         self.textRenderer = textRenderer ?? GrowthTextRenderer(localizationService: resolvedLocalizationService)
@@ -76,6 +80,7 @@ extension GrowthStore {
         if milestoneRepository == nil {
             milestoneRepository = GrowthMilestoneRepository(modelContext: modelContext)
         }
+        self.modelContext = modelContext
     }
 
     func updateHeaderConfig(_ config: HomeHeaderConfig) {
@@ -109,7 +114,7 @@ extension GrowthStore {
 
         case .tapEntry:
             prepareEntryDraft(for: viewState.currentMetric)
-            viewState.sheetState = viewState.currentMetric == .height ? .openHeight : .openWeight
+            viewState.sheetState = openSheetState(for: viewState.currentMetric)
             AppHaptics.lightImpact()
 
         case .dismissSheet:
@@ -118,12 +123,12 @@ extension GrowthStore {
         case .switchToManualInput:
             guard let metric = currentSheetMetric else { return }
             syncDraftManualText()
-            viewState.sheetState = metric == .height ? .manualInputHeight : .manualInputWeight
+            viewState.sheetState = manualInputSheetState(for: metric)
             AppHaptics.selection()
 
         case .switchToRulerInput:
             guard let metric = currentSheetMetric else { return }
-            viewState.sheetState = metric == .height ? .openHeight : .openWeight
+            viewState.sheetState = openSheetState(for: metric)
             AppHaptics.selection()
 
         case let .updateManualInput(text):
@@ -196,6 +201,28 @@ extension GrowthStore {
         viewState.sheetState.metric
     }
 
+    private func openSheetState(for metric: GrowthMetric) -> GrowthSheetState {
+        switch metric {
+        case .height:
+            .openHeight
+        case .weight:
+            .openWeight
+        case .headCircumference:
+            .openHeadCircumference
+        }
+    }
+
+    private func manualInputSheetState(for metric: GrowthMetric) -> GrowthSheetState {
+        switch metric {
+        case .height:
+            .manualInputHeight
+        case .weight:
+            .manualInputWeight
+        case .headCircumference:
+            .manualInputHeadCircumference
+        }
+    }
+
     private func selectMetric(_ metric: GrowthMetric) {
         guard viewState.currentMetric != metric else { return }
         resetPrecisionState()
@@ -235,6 +262,12 @@ extension GrowthStore {
                 points: points,
                 referenceBands: viewState.referenceBands,
                 metric: viewState.currentMetric
+            )
+            viewState.growthSummary = summaryBuilder.build(
+                metric: viewState.currentMetric,
+                points: points,
+                milestoneDates: fetchMilestoneDates(),
+                now: dateProvider()
             )
             viewState.dataState = points.isEmpty ? .empty : .hasData
         } catch {
@@ -612,5 +645,21 @@ extension GrowthStore {
     private func logPersistenceError(_ error: Error, message: String) {
         let errorDescription = String(describing: error)
         AppLogger.persistence.error("\(message, privacy: .public): \(errorDescription, privacy: .public)")
+    }
+
+    private func fetchMilestoneDates() -> [Date] {
+        guard let modelContext else { return [] }
+        do {
+            let descriptor = FetchDescriptor<MemoryEntry>(
+                predicate: #Predicate<MemoryEntry> { entry in
+                    entry.isMilestone == true
+                },
+                sortBy: [SortDescriptor(\.createdAt, order: .forward)]
+            )
+            return try modelContext.fetch(descriptor).map(\.createdAt)
+        } catch {
+            logPersistenceError(error, message: "Fetch milestone dates failed")
+            return []
+        }
     }
 }

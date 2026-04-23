@@ -6,6 +6,7 @@ nonisolated final class TreasureRepository {
     private static let logger = Logger(subsystem: "sprout", category: "TreasureRepository")
     private let modelContext: ModelContext
     private let calendar: Calendar
+    private let digestBuilder: WeeklyDigestBuilder
 
     @MainActor
     init(
@@ -14,6 +15,7 @@ nonisolated final class TreasureRepository {
     ) {
         self.modelContext = modelContext
         self.calendar = calendar
+        self.digestBuilder = WeeklyDigestBuilder(calendar: calendar)
     }
 }
 
@@ -113,11 +115,33 @@ extension TreasureRepository {
     ) throws {
         let normalizedWeekStart = calendar.startOfDay(for: weekStart)
         let weekEnd = calendar.date(byAdding: .day, value: 6, to: normalizedWeekStart) ?? normalizedWeekStart
+        let range = normalizedWeekStart ... weekEnd.endOfDay(calendar: calendar)
 
-        let entries = try fetchEntries(in: normalizedWeekStart ... weekEnd.endOfDay(calendar: calendar))
+        let entries = try fetchEntries(in: range)
         let milestones = try fetchMilestones(in: normalizedWeekStart ... weekEnd.endOfDay(calendar: calendar))
+        let growthRecords = try fetchGrowthRecords(in: range)
         let existingLetter = try fetchWeeklyLetter(for: normalizedWeekStart)
-        let newLetter = composer.compose(
+
+        let digestMilestones = growthRecords
+            .filter { $0.type == RecordType.height.rawValue || $0.type == RecordType.weight.rawValue || $0.type == RecordType.headCircumference.rawValue }
+            .map { DigestGrowthRecord(id: $0.id, type: $0.type, value: $0.value, timestamp: $0.timestamp) }
+
+        let digest = digestBuilder.build(
+            entries: entries,
+            milestones: digestMilestones,
+            growthRecords: growthRecords,
+            weekStart: normalizedWeekStart,
+            weekEnd: weekEnd
+        )
+
+        let languageCode = LocalizationService.current.language.rawValue
+        let digestLetter = composer.compose(
+            digest: digest,
+            generatedAt: generatedAt,
+            languageCode: languageCode
+        )
+
+        let milestoneLetter = composer.compose(
             entries: entries,
             milestones: milestones,
             weekStart: normalizedWeekStart,
@@ -125,12 +149,39 @@ extension TreasureRepository {
             generatedAt: generatedAt
         )
 
+        let newLetter: WeeklyLetter?
+        switch (digestLetter, milestoneLetter) {
+        case (let d?, _):
+            if let m = milestoneLetter {
+                newLetter = WeeklyLetter(
+                    weekStart: d.weekStart,
+                    weekEnd: d.weekEnd,
+                    density: d.density,
+                    collapsedText: m.collapsedText,
+                    expandedText: m.expandedText,
+                    languageCode: d.languageCode,
+                    sourceSignature: d.sourceSignature,
+                    generatedBy: d.generatedBy,
+                    generatedAt: d.generatedAt
+                )
+            } else {
+                newLetter = d
+            }
+        case (nil, let m?):
+            newLetter = m
+        case (nil, nil):
+            newLetter = nil
+        }
+
         switch (existingLetter, newLetter) {
         case let (existing?, replacement?):
             existing.weekEnd = replacement.weekEnd
             existing.density = replacement.density
             existing.collapsedText = replacement.collapsedText
             existing.expandedText = replacement.expandedText
+            existing.languageCode = replacement.languageCode
+            existing.sourceSignature = replacement.sourceSignature
+            existing.generatedBy = replacement.generatedBy
             existing.generatedAt = replacement.generatedAt
             try modelContext.save()
         case (nil, let replacement?):
@@ -172,6 +223,22 @@ extension TreasureRepository {
         )
         descriptor.fetchLimit = 1
         return try modelContext.fetch(descriptor).first
+    }
+
+    private func fetchGrowthRecords(in range: ClosedRange<Date>) throws -> [RecordItem] {
+        let heightType = RecordType.height.rawValue
+        let weightType = RecordType.weight.rawValue
+        let headType = RecordType.headCircumference.rawValue
+        let foodType = RecordType.food.rawValue
+
+        let descriptor = FetchDescriptor<RecordItem>(
+            predicate: #Predicate<RecordItem> { item in
+                (item.type == heightType || item.type == weightType || item.type == headType || item.type == foodType)
+                    && item.timestamp >= range.lowerBound && item.timestamp <= range.upperBound
+            },
+            sortBy: [SortDescriptor(\.timestamp, order: .forward)]
+        )
+        return try modelContext.fetch(descriptor)
     }
 
     private func fetchPreferredBabyID() throws -> UUID? {

@@ -72,7 +72,11 @@ struct TreasureModuleContainer: View {
                     store.consumeScrollTarget()
                 }
                 .sheet(item: weeklyLetterBinding) { item in
-                    TreasureWeeklyLetterSheet(item: item, onClose: { store.handle(.dismissWeeklyLetter) })
+                    TreasureWeeklyLetterSheet(
+                        item: item,
+                        onClose: { store.handle(.dismissWeeklyLetter) },
+                        onRegenerate: { store.handle(.regenerateWeeklyLetter(item)) }
+                    )
                         .presentationDetents(item.letterDensity == .dense ? [.medium, .large] : [.height(420), .medium])
                         .presentationDragIndicator(.visible)
                         .presentationBackground(TreasureTheme.pageBackground)

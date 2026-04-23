@@ -22,6 +22,8 @@ struct GrowthTextRenderer {
             return L10n.text(metric.titleLocalizationKey, service: localizationService, en: "Height", zh: "身高")
         case .weight:
             return L10n.text(metric.titleLocalizationKey, service: localizationService, en: "Weight", zh: "体重")
+        case .headCircumference:
+            return L10n.text(metric.titleLocalizationKey, service: localizationService, en: "Head Circumference", zh: "头围")
         }
     }
 
@@ -31,6 +33,8 @@ struct GrowthTextRenderer {
             return L10n.text(metric.entryTitleLocalizationKey, service: localizationService, en: "Record height", zh: "记录身高")
         case .weight:
             return L10n.text(metric.entryTitleLocalizationKey, service: localizationService, en: "Record weight", zh: "记录体重")
+        case .headCircumference:
+            return L10n.text(metric.entryTitleLocalizationKey, service: localizationService, en: "Record head circumference", zh: "记录头围")
         }
     }
 
@@ -40,6 +44,8 @@ struct GrowthTextRenderer {
             return L10n.text(metric.emptyLocalizationKey, service: localizationService, en: "No height records yet", zh: "还没有身高记录")
         case .weight:
             return L10n.text(metric.emptyLocalizationKey, service: localizationService, en: "No weight records yet", zh: "还没有体重记录")
+        case .headCircumference:
+            return L10n.text(metric.emptyLocalizationKey, service: localizationService, en: "No head circumference records yet", zh: "还没有头围记录")
         }
     }
 
@@ -49,6 +55,8 @@ struct GrowthTextRenderer {
             return L10n.text(metric.unitLocalizationKey, service: localizationService, en: "cm", zh: "cm")
         case .weight:
             return L10n.text(metric.unitLocalizationKey, service: localizationService, en: "kg", zh: "kg")
+        case .headCircumference:
+            return L10n.text(metric.unitLocalizationKey, service: localizationService, en: "cm", zh: "cm")
         }
     }
 

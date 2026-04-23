@@ -209,6 +209,137 @@ struct TreasureDomainTests {
         #expect(letter.expandedText.contains("第一次翻身"))
     }
 
+    @Test("WeeklyDigestBuilder filters entries to the week range")
+    func testWeeklyDigestBuilderFiltersEntries() throws {
+        let weekStart = makeDate(year: 2026, month: 4, day: 6)
+        let weekEnd = makeDate(year: 2026, month: 4, day: 12)
+
+        let inWeekEntry = MemoryEntry(
+            createdAt: makeDate(year: 2026, month: 4, day: 8),
+            ageInDays: 90,
+            imageLocalPaths: [],
+            note: "In week",
+            isMilestone: false
+        )
+        let outOfWeekEntry = MemoryEntry(
+            createdAt: makeDate(year: 2026, month: 4, day: 14),
+            ageInDays: 96,
+            imageLocalPaths: [],
+            note: "Out of week",
+            isMilestone: false
+        )
+
+        let builder = WeeklyDigestBuilder(calendar: Self.calendar)
+        let digest = builder.build(
+            entries: [inWeekEntry, outOfWeekEntry],
+            milestones: [],
+            growthRecords: [],
+            weekStart: weekStart,
+            weekEnd: weekEnd
+        )
+
+        #expect(digest.memories.count == 1)
+        #expect(digest.memories.first?.note == "In week")
+        #expect(digest.textCount == 1)
+        #expect(digest.photoCount == 0)
+        #expect(digest.milestoneCount == 0)
+        #expect(digest.growthRecordCount == 0)
+        #expect(digest.firstTasteTags.isEmpty)
+    }
+
+    @Test("WeeklyDigestBuilder collects first taste tags from food records")
+    func testWeeklyDigestBuilderCollectsFirstTasteTags() throws {
+        let weekStart = makeDate(year: 2026, month: 4, day: 6)
+        let weekEnd = makeDate(year: 2026, month: 4, day: 12)
+
+        let entry = MemoryEntry(
+            createdAt: makeDate(year: 2026, month: 4, day: 8),
+            ageInDays: 90,
+            imageLocalPaths: [],
+            note: nil,
+            isMilestone: false
+        )
+
+        let foodRecord = RecordItem(
+            timestamp: makeDate(year: 2026, month: 4, day: 9),
+            type: RecordType.food.rawValue,
+            tags: ["apple", "banana"]
+        )
+
+        let builder = WeeklyDigestBuilder(calendar: Self.calendar)
+        let digest = builder.build(
+            entries: [entry],
+            milestones: [],
+            growthRecords: [foodRecord],
+            weekStart: weekStart,
+            weekEnd: weekEnd
+        )
+
+        #expect(digest.firstTasteTags == ["apple", "banana"])
+        #expect(digest.growthRecordCount == 1)
+    }
+
+    @Test("Composer digest-based overload generates letter with metadata")
+    func testComposerDigestOverloadSetsMetadata() throws {
+        let weekStart = makeDate(year: 2026, month: 4, day: 6)
+        let weekEnd = makeDate(year: 2026, month: 4, day: 12)
+        let generatedAt = makeDate(year: 2026, month: 4, day: 12)
+
+        let entry = MemoryEntry(
+            createdAt: makeDate(year: 2026, month: 4, day: 7),
+            ageInDays: 90,
+            imageLocalPaths: ["photo.jpg"],
+            note: "A note",
+            isMilestone: false
+        )
+
+        let builder = WeeklyDigestBuilder(calendar: Self.calendar)
+        let digest = builder.build(
+            entries: [entry],
+            milestones: [],
+            growthRecords: [],
+            weekStart: weekStart,
+            weekEnd: weekEnd
+        )
+
+        let composer = WeeklyLetterComposer(calendar: Self.calendar, language: .english)
+        let letter = composer.compose(
+            digest: digest,
+            generatedAt: generatedAt,
+            languageCode: "en"
+        )
+
+        #expect(letter != nil)
+        let unwrapped = letter!
+        #expect(unwrapped.languageCode == "en")
+        #expect(unwrapped.generatedBy == "WeeklyDigestBuilder")
+        #expect(unwrapped.sourceSignature != nil)
+        #expect(unwrapped.density == .silent)
+    }
+
+    @Test("Composer digest-based overload returns nil for empty digest")
+    func testComposerDigestOverloadReturnsNilForEmptyDigest() throws {
+        let weekStart = makeDate(year: 2026, month: 4, day: 6)
+        let weekEnd = makeDate(year: 2026, month: 4, day: 12)
+
+        let builder = WeeklyDigestBuilder(calendar: Self.calendar)
+        let digest = builder.build(
+            entries: [],
+            milestones: [],
+            growthRecords: [],
+            weekStart: weekStart,
+            weekEnd: weekEnd
+        )
+
+        let composer = WeeklyLetterComposer(calendar: Self.calendar, language: .english)
+        let letter = composer.compose(
+            digest: digest,
+            generatedAt: makeDate(year: 2026, month: 4, day: 12),
+            languageCode: "en"
+        )
+
+        #expect(letter == nil)
+    }
     private func makeTimelineItem(id: UUID, createdAt: Date, monthKey: String) -> TreasureTimelineItem {
         TreasureTimelineItem(
             id: id,

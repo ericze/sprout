@@ -76,7 +76,7 @@ struct TimelineContentFormatter {
                 imagePath: hasImage ? record.imageURL : nil,
                 type: .food
             )
-        case .height, .weight:
+        case .height, .weight, .headCircumference:
             return nil
         }
     }

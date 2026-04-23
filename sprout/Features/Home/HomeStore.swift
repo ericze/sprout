@@ -30,6 +30,8 @@ final class HomeStore {
     @ObservationIgnored private var loadedHistoryCount = 0
     @ObservationIgnored private var undoDismissTask: Task<Void, Never>?
     @ObservationIgnored private var messageDismissTask: Task<Void, Never>?
+    @ObservationIgnored private var aiService: FoodAIAssistService?
+    @ObservationIgnored private var aiSuggestTask: Task<Void, Never>?
     init(
         headerConfig: HomeHeaderConfig,
         recordRepository: RecordRepository? = nil,
@@ -67,6 +69,7 @@ final class HomeStore {
     deinit {
         undoDismissTask?.cancel()
         messageDismissTask?.cancel()
+        aiSuggestTask?.cancel()
     }
 }
 extension HomeStore {
@@ -202,6 +205,10 @@ extension HomeStore {
         recordRepository = RecordRepository(modelContext: modelContext, calendar: calendar)
     }
 
+    func configure(aiService: FoodAIAssistService) {
+        self.aiService = aiService
+    }
+
     func updateHeaderConfig(_ config: HomeHeaderConfig) {
         headerConfig = config
     }
@@ -296,6 +303,14 @@ extension HomeStore {
             dismissMessageToast()
         case let .loadMoreIfNeeded(recordID):
             loadMoreHistoryIfNeeded(for: recordID)
+        case .tapFoodAISuggest:
+            requestFoodAISuggestion()
+        case .applyFoodAISuggestion:
+            applyFoodAISuggestion()
+        case .dismissFoodAISuggestion:
+            dismissFoodAISuggestion()
+        case .retryFoodAISuggestion:
+            requestFoodAISuggestion()
         }
     }
 
@@ -1179,6 +1194,76 @@ extension HomeStore {
         dismissMessageToast()
     }
 
+    private func requestFoodAISuggestion() {
+        guard let aiService, let imagePath = foodDraft.selectedImagePath else {
+            viewState.foodAIState = .failed(
+                L10n.text(
+                    "food.ai.failed",
+                    service: localizationService,
+                    en: "Recognition failed, continue manually",
+                    zh: "识别失败，可继续手动记录"
+                )
+            )
+            return
+        }
+
+        viewState.foodAIState = .loading
+        aiSuggestTask?.cancel()
+
+        let allowedTags = allSuggestedFoodTags
+        let knownTags = viewState.knownFoodTags
+        let locale = localizationService.locale
+
+        aiSuggestTask = Task { @MainActor [weak self] in
+            do {
+                let rawResult = try await aiService.suggest(
+                    imageLocalPath: imagePath,
+                    locale: locale,
+                    allowedTags: allowedTags,
+                    knownFoodTags: knownTags
+                )
+                guard !Task.isCancelled else { return }
+                let canonicalized = rawResult.canonicalized(
+                    with: self?.foodTagCatalog ?? FoodTagCatalog(language: .english),
+                    allowedTags: allowedTags
+                )
+                self?.viewState.foodAIState = .suggestion(canonicalized)
+            } catch {
+                guard !Task.isCancelled else { return }
+                self?.viewState.foodAIState = .failed(
+                    L10n.text(
+                        "food.ai.failed",
+                        service: self?.localizationService ?? .current,
+                        en: "Recognition failed, continue manually",
+                        zh: "识别失败，可继续手动记录"
+                    )
+                )
+            }
+        }
+    }
+
+    private func applyFoodAISuggestion() {
+        guard case let .suggestion(result) = viewState.foodAIState else { return }
+
+        for candidate in result.candidateTags {
+            let canonicalTag = canonicalFoodTag(matching: candidate.tag)
+            guard !canonicalTag.isEmpty else { continue }
+            guard !containsFoodTag(canonicalTag, in: foodDraft.selectedTags) else { continue }
+            foodDraft.selectedTags.append(canonicalTag)
+        }
+
+        if let noteSuggestion = result.noteSuggestion, !noteSuggestion.isEmpty, foodDraft.note.trimmed.isEmpty {
+            foodDraft.note = noteSuggestion
+        }
+
+        updateFirstTasteFoodTags()
+        viewState.foodAIState = .idle
+    }
+
+    private func dismissFoodAISuggestion() {
+        viewState.foodAIState = .idle
+    }
+
     private func resetFoodDraft(removeStoredImage: Bool) {
         if removeStoredImage, shouldRemoveFoodDraftImage(at: foodDraft.selectedImagePath) {
             FoodPhotoStorage.removeImage(at: foodDraft.selectedImagePath)
@@ -1187,6 +1272,8 @@ extension HomeStore {
         foodDraftTimestamp = dateProvider()
         foodEditorSession = FoodEditorSession.create(at: foodDraftTimestamp)
         viewState.firstTasteFoodTags = []
+        viewState.foodAIState = .idle
+        aiSuggestTask?.cancel()
     }
 
     private func resetSleepEditDraft() {

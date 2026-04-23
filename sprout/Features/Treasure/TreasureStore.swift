@@ -201,6 +201,9 @@ extension TreasureStore {
 
         case .endMonthScrubbing:
             endMonthScrubbing()
+
+        case let .regenerateWeeklyLetter(letter):
+            regenerateWeeklyLetter(letter)
         }
     }
 
@@ -662,6 +665,35 @@ extension TreasureStore {
                     "treasure.error.weekly_letter",
                     en: "Couldn't refresh the weekly letter right now.",
                     zh: "这周的时光信笺暂时没有更新成功。"
+                )
+            )
+        }
+    }
+
+    private func regenerateWeeklyLetter(_ item: TreasureTimelineItem) {
+        guard let repository, let weekStart = item.weekStart else { return }
+
+        do {
+            try repository.syncWeeklyLetter(
+                for: weekStart,
+                composer: weeklyLetterComposer,
+                generatedAt: dateProvider()
+            )
+            refreshTimeline()
+            showMessageToast(
+                L10n.text(
+                    "treasure.letter.regenerate_success",
+                    en: "Letter regenerated",
+                    zh: "周信已重新生成"
+                )
+            )
+        } catch {
+            logPersistenceError(error, message: "Treasure weekly letter regenerate failed")
+            showMessageToast(
+                L10n.text(
+                    "treasure.letter.regenerate_failed",
+                    en: "Regenerate failed, old content preserved",
+                    zh: "重新生成失败，旧内容已保留"
                 )
             )
         }

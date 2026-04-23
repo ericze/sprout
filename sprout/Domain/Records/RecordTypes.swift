@@ -7,6 +7,7 @@ enum RecordType: String, Codable, CaseIterable {
     case food
     case height
     case weight
+    case headCircumference
 }
 
 enum DiaperSubtype: String, Codable, CaseIterable {
@@ -38,6 +39,7 @@ enum RecordIcon: Equatable {
     case food
     case height
     case weight
+    case headCircumference
 
     var systemName: String {
         switch self {
@@ -53,6 +55,8 @@ enum RecordIcon: Equatable {
             "ruler"
         case .weight:
             "scalemass"
+        case .headCircumference:
+            "circle.circle"
         }
     }
 }

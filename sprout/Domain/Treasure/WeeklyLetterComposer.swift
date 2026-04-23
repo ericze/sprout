@@ -62,6 +62,45 @@ struct WeeklyLetterComposer {
         )
     }
 
+    func compose(
+        digest: WeeklyDigest,
+        generatedAt: Date,
+        languageCode: String
+    ) -> WeeklyLetter? {
+        guard !digest.memories.isEmpty else { return nil }
+
+        let normalizedEntries = digest.memories.sorted { $0.createdAt < $1.createdAt }
+        let density = makeDensity(
+            entryCount: normalizedEntries.count,
+            milestoneCount: digest.milestoneCount
+        )
+        let collapsedText = makeCollapsedText(for: density)
+        let expandedText = makeRichExpandedText(
+            density: density,
+            digest: digest,
+            entries: normalizedEntries
+        )
+
+        guard isAllowed(collapsedText, density: density, isCollapsed: true),
+              isAllowed(expandedText, density: density, isCollapsed: false) else {
+            return nil
+        }
+
+        let sourceSignature = buildSourceSignature(digest: digest)
+
+        return WeeklyLetter(
+            weekStart: calendar.startOfDay(for: digest.weekStart),
+            weekEnd: calendar.startOfDay(for: digest.weekEnd),
+            density: density,
+            collapsedText: collapsedText,
+            expandedText: expandedText,
+            languageCode: languageCode,
+            sourceSignature: sourceSignature,
+            generatedBy: "WeeklyDigestBuilder",
+            generatedAt: generatedAt
+        )
+    }
+
     private func makeDensity(entryCount: Int, milestoneCount: Int, growthMilestoneCount: Int = 0) -> WeeklyLetterDensity {
         if milestoneCount > 0 || growthMilestoneCount > 0 || entryCount >= 5 {
             return .dense
@@ -246,6 +285,143 @@ struct WeeklyLetterComposer {
         let titles = milestones.map(\.title).prefix(3).joined(separator: "、")
         let count = milestones.count
         return "本周宝宝达成了 \(count) 个成长里程碑：\(titles)。"
+    }
+
+    private func makeRichExpandedText(
+        density: WeeklyLetterDensity,
+        digest: WeeklyDigest,
+        entries: [MemoryEntry]
+    ) -> String {
+        let firstNoteSnippet = entries
+            .compactMap { $0.note?.trimmed.nilIfEmpty }
+            .first
+            .map { String($0.prefix(18)) } ?? ""
+
+        switch language {
+        case .english:
+            return makeRichEnglishExpandedText(
+                density: density,
+                digest: digest,
+                entries: entries,
+                firstNoteSnippet: firstNoteSnippet
+            )
+        case .simplifiedChinese:
+            return makeRichChineseExpandedText(
+                density: density,
+                digest: digest,
+                entries: entries,
+                firstNoteSnippet: firstNoteSnippet
+            )
+        }
+    }
+
+    private func makeRichEnglishExpandedText(
+        density: WeeklyLetterDensity,
+        digest: WeeklyDigest,
+        entries: [MemoryEntry],
+        firstNoteSnippet: String
+    ) -> String {
+        var sections: [String] = []
+
+        if digest.growthRecordCount > 0 {
+            sections.append("\(digest.growthRecordCount) growth measurement\(digest.growthRecordCount == 1 ? "" : "s")")
+        }
+
+        if !digest.firstTasteTags.isEmpty {
+            let tagList = digest.firstTasteTags.prefix(3).joined(separator: ", ")
+            sections.append("new tastes: \(tagList)")
+        }
+
+        if digest.milestoneCount > 0 {
+            sections.append("\(digest.milestoneCount) milestone\(digest.milestoneCount == 1 ? "" : "s")")
+        }
+
+        switch density {
+        case .silent:
+            return "One memory, quietly kept."
+        case .normal:
+            let base = "\(entries.count) memories this week"
+            let photoPart = digest.photoCount > 0 ? "\(digest.photoCount) photo\(digest.photoCount == 1 ? "" : "s")" : nil
+            let textPart = digest.textCount > 0 ? "\(digest.textCount) note\(digest.textCount == 1 ? "" : "s")" : nil
+            var parts = [base]
+            if let p = photoPart { parts.append(p) }
+            if let p = textPart { parts.append(p) }
+            parts.append(contentsOf: sections)
+            return "\(parts.joined(separator: ", ")). Small moments stayed here, gently and without hurry."
+        case .dense:
+            var header = "More than usual this week."
+            if digest.milestoneCount > 0 {
+                header += " \(digest.milestoneCount) star\(digest.milestoneCount == 1 ? "" : "s") were gently marked."
+            }
+            let body = "\(entries.count) memories spread across the week, with \(digest.photoCount) photo\(digest.photoCount == 1 ? "" : "s") and \(digest.textCount) note\(digest.textCount == 1 ? "" : "s") tucked in."
+            let extra = sections.isEmpty ? "" : " " + sections.joined(separator: "; ") + "."
+            let ending: String
+            if firstNoteSnippet.isEmpty {
+                ending = "They can stay quiet and still be kept."
+            } else {
+                ending = "A moment like \"\(firstNoteSnippet)\" stays safely here."
+            }
+            return "\(header) \(body)\(extra) \(ending)"
+        }
+    }
+
+    private func makeRichChineseExpandedText(
+        density: WeeklyLetterDensity,
+        digest: WeeklyDigest,
+        entries: [MemoryEntry],
+        firstNoteSnippet: String
+    ) -> String {
+        var sections: [String] = []
+
+        if digest.growthRecordCount > 0 {
+            sections.append("\(digest.growthRecordCount) 条成长记录")
+        }
+
+        if !digest.firstTasteTags.isEmpty {
+            let tagList = digest.firstTasteTags.prefix(3).joined(separator: "、")
+            sections.append("新的尝试：\(tagList)")
+        }
+
+        if digest.milestoneCount > 0 {
+            sections.append("\(digest.milestoneCount) 个星标")
+        }
+
+        switch density {
+        case .silent:
+            return "这一周只留下一条记忆，安静收好。"
+        case .normal:
+            var parts = ["这一周留下了 \(entries.count) 条记忆"]
+            if digest.photoCount > 0 {
+                parts.append("\(digest.photoCount) 张照片")
+            }
+            if digest.textCount > 0 {
+                parts.append("\(digest.textCount) 段文字")
+            }
+            parts.append(contentsOf: sections)
+            return "\(parts.joined(separator: "，"))。几件小事安静地留了下来，时间也在这些片刻里慢慢往前。"
+        case .dense:
+            var prefix = "这一周比平时更满一些。"
+            if digest.milestoneCount > 0 {
+                prefix += " 其中有 \(digest.milestoneCount) 个小小的星标。"
+            }
+
+            let middle = "照片和文字让这一页更厚了一点，\(entries.count) 条记忆慢慢铺开。"
+            let extra = sections.isEmpty ? "" : sections.joined(separator: "，") + "。"
+            let ending: String
+            if firstNoteSnippet.isEmpty {
+                ending = "它们不需要被张扬，只要在翻到这里时能被重新看见。"
+            } else {
+                ending = "像\u{201C}\(firstNoteSnippet)\u{201D}这样的片刻，也被稳稳留了下来。"
+            }
+            return "\(prefix)\(middle)\(extra)\(ending)"
+        }
+    }
+
+    private func buildSourceSignature(digest: WeeklyDigest) -> String {
+        let memoryHash = digest.memories.map(\.id.uuidString).sorted().joined(separator: ",")
+        let growthHash = "\(digest.growthRecordCount)"
+        let tasteHash = digest.firstTasteTags.joined(separator: ",")
+        return "\(memoryHash)|\(growthHash)|\(tasteHash)"
     }
 
     private func isAllowed(_ text: String, density: WeeklyLetterDensity, isCollapsed: Bool) -> Bool {

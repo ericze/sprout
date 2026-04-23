@@ -347,13 +347,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AI Notes"
+            "value" : "Growth Insight"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AI 客观解读"
+            "value" : "成长解读"
           }
         }
       }
@@ -698,6 +698,57 @@
         }
       }
     },
+    "growth.metric.headCircumference.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Head Circumference"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "头围"
+          }
+        }
+      }
+    },
+    "growth.metric.headCircumference.entry_title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record head circumference"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "记录头围"
+          }
+        }
+      }
+    },
+    "growth.metric.headCircumference.empty" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No head circumference records yet"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还没有头围记录"
+          }
+        }
+      }
+    },
     "growth.ruler.instruction" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -728,6 +779,86 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "⌨️ 手动输入"
+          }
+        }
+      }
+    },
+    "growth.summary.guidance_format" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start tracking your baby's %1$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始记录宝宝的%1$@数据"
+          }
+        }
+      }
+    },
+    "growth.summary.milestones_format" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ milestones this month"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本月 %1$@ 个里程碑"
+          }
+        }
+      }
+    },
+    "growth.summary.started_format" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recorded %1$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已记录 %1$@"
+          }
+        }
+      }
+    },
+    "growth.summary.summary_format" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last record %1$@ days ago, changed %2$@%3$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上次记录 %1$@ 天前，变化 %2$@%3$@"
+          }
+        }
+      }
+    },
+    "growth.summary.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Growth Summary"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "成长概览"
           }
         }
       }

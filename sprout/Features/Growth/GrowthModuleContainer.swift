@@ -31,6 +31,7 @@ struct GrowthModuleContainer: View {
                     onEdit: { store.handle(.tapEditMilestone($0)) }
                 )
 
+                GrowthSummaryCard(summary: store.viewState.growthSummary)
                 Spacer(minLength: 140)
             }
             .padding(.horizontal, AppTheme.Spacing.screenHorizontal)

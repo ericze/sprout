@@ -9,6 +9,9 @@ final class WeeklyLetter {
     var density: WeeklyLetterDensity
     var collapsedText: String
     var expandedText: String
+    var languageCode: String?
+    var sourceSignature: String?
+    var generatedBy: String?
     var generatedAt: Date
 
     init(
@@ -18,6 +21,9 @@ final class WeeklyLetter {
         density: WeeklyLetterDensity,
         collapsedText: String,
         expandedText: String,
+        languageCode: String? = nil,
+        sourceSignature: String? = nil,
+        generatedBy: String? = nil,
         generatedAt: Date
     ) {
         self.id = id
@@ -26,6 +32,9 @@ final class WeeklyLetter {
         self.density = density
         self.collapsedText = collapsedText
         self.expandedText = expandedText
+        self.languageCode = languageCode
+        self.sourceSignature = sourceSignature
+        self.generatedBy = generatedBy
         self.generatedAt = generatedAt
     }
 }

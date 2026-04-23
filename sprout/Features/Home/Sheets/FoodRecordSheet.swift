@@ -81,6 +81,10 @@ struct FoodRecordSheet: View {
                         },
                         onRemovePhoto: store.removeFoodImage
                     )
+
+                    if store.foodDraft.selectedImagePath != nil {
+                        FoodAIAssistSection(store: store)
+                    }
                 }
                 .padding(.bottom, 12)
             }
@@ -302,6 +306,111 @@ private struct FoodPhotoPickerSection: View {
                     .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.card, style: .continuous))
                 }
                 .buttonStyle(.plain)
+            }
+        }
+    }
+}
+
+private struct FoodAIAssistSection: View {
+    @Bindable var store: HomeStore
+
+    private let tagColumns = [GridItem(.adaptive(minimum: 88), spacing: 10)]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            switch store.viewState.foodAIState {
+            case .idle:
+                Button {
+                    store.handle(.tapFoodAISuggest)
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 14, weight: .medium))
+                        Text(L10n.text("food.ai.suggest_button", en: "AI Suggest", zh: "AI 辅助识别"))
+                            .font(AppTheme.Typography.meta)
+                    }
+                    .foregroundStyle(AppTheme.Colors.accent)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(AppTheme.Colors.accent.opacity(0.1))
+                    .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+
+            case .loading:
+                HStack(spacing: 8) {
+                    ProgressView()
+                    Text(L10n.text("food.ai.loading", en: "Analyzing...", zh: "识别中..."))
+                        .font(AppTheme.Typography.meta)
+                        .foregroundStyle(AppTheme.Colors.secondaryText)
+                }
+                .padding(.vertical, 4)
+
+            case let .suggestion(result):
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(L10n.text("food.ai.apply", en: "Apply Suggestions", zh: "应用建议"))
+                        .font(AppTheme.Typography.meta)
+                        .foregroundStyle(AppTheme.Colors.secondaryText)
+
+                    if !result.candidateTags.isEmpty {
+                        LazyVGrid(columns: tagColumns, alignment: .leading, spacing: 10) {
+                            ForEach(result.candidateTags, id: \.tag) { candidate in
+                                Button {
+                                    store.handle(.applyFoodAISuggestion)
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "plus.circle.fill")
+                                            .font(.system(size: 14))
+                                        Text(candidate.tag)
+                                            .font(AppTheme.Typography.meta)
+                                    }
+                                    .foregroundStyle(Color.white)
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 10)
+                                    .background(AppTheme.Colors.accent)
+                                    .clipShape(Capsule())
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+
+                    HStack(spacing: 12) {
+                        Button {
+                            store.handle(.applyFoodAISuggestion)
+                        } label: {
+                            Text(L10n.text("food.ai.apply", en: "Apply Suggestions", zh: "应用建议"))
+                                .font(AppTheme.Typography.meta)
+                                .foregroundStyle(AppTheme.Colors.accent)
+                        }
+                        .buttonStyle(.plain)
+
+                        Button {
+                            store.handle(.dismissFoodAISuggestion)
+                        } label: {
+                            Text(L10n.text("common.cancel", en: "Cancel", zh: "取消"))
+                                .font(AppTheme.Typography.meta)
+                                .foregroundStyle(AppTheme.Colors.tertiaryText)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+            case let .failed(message):
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(message)
+                        .font(AppTheme.Typography.meta)
+                        .foregroundStyle(AppTheme.Colors.secondaryText)
+
+                    Button {
+                        store.handle(.retryFoodAISuggestion)
+                    } label: {
+                        Text(L10n.text("food.ai.retry", en: "Retry", zh: "重试"))
+                            .font(AppTheme.Typography.meta)
+                            .foregroundStyle(AppTheme.Colors.accent)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
         }
     }

@@ -4,6 +4,7 @@ import Foundation
 enum GrowthMetric: String, Codable, CaseIterable, Identifiable {
     case height
     case weight
+    case headCircumference
 
     var id: String { rawValue }
 
@@ -13,6 +14,8 @@ enum GrowthMetric: String, Codable, CaseIterable, Identifiable {
             "growth.metric.height.title"
         case .weight:
             "growth.metric.weight.title"
+        case .headCircumference:
+            "growth.metric.headCircumference.title"
         }
     }
 
@@ -22,6 +25,8 @@ enum GrowthMetric: String, Codable, CaseIterable, Identifiable {
             "growth.metric.height.entry_title"
         case .weight:
             "growth.metric.weight.entry_title"
+        case .headCircumference:
+            "growth.metric.headCircumference.entry_title"
         }
     }
 
@@ -31,6 +36,8 @@ enum GrowthMetric: String, Codable, CaseIterable, Identifiable {
             .height
         case .weight:
             .weight
+        case .headCircumference:
+            .headCircumference
         }
     }
 
@@ -40,6 +47,8 @@ enum GrowthMetric: String, Codable, CaseIterable, Identifiable {
             "growth.metric.height.empty"
         case .weight:
             "growth.metric.weight.empty"
+        case .headCircumference:
+            "growth.metric.headCircumference.empty"
         }
     }
 
@@ -49,6 +58,8 @@ enum GrowthMetric: String, Codable, CaseIterable, Identifiable {
             "unit.centimeter.short"
         case .weight:
             "unit.kilogram.short"
+        case .headCircumference:
+            "unit.centimeter.short"
         }
     }
 }
@@ -69,8 +80,10 @@ enum GrowthSheetState: Equatable {
     case closed
     case openHeight
     case openWeight
+    case openHeadCircumference
     case manualInputHeight
     case manualInputWeight
+    case manualInputHeadCircumference
 
     var isPresented: Bool {
         self != .closed
@@ -82,13 +95,15 @@ enum GrowthSheetState: Equatable {
             .height
         case .openWeight, .manualInputWeight:
             .weight
+        case .openHeadCircumference, .manualInputHeadCircumference:
+            .headCircumference
         case .closed:
             nil
         }
     }
 
     var isManualInput: Bool {
-        self == .manualInputHeight || self == .manualInputWeight
+        self == .manualInputHeight || self == .manualInputWeight || self == .manualInputHeadCircumference
     }
 }
 
@@ -188,6 +203,14 @@ struct GrowthRulerConfig: Equatable {
                 selectionStep: 0.1,
                 strongStep: 0.5
             )
+        case .headCircumference:
+            return GrowthRulerConfig(
+                metric: .headCircumference,
+                range: productConfig.headCircumferenceRange,
+                precision: 0.1,
+                selectionStep: 0.5,
+                strongStep: 1.0
+            )
         }
     }
 }
@@ -221,6 +244,12 @@ struct GrowthViewState: Equatable {
     var milestones: [GrowthMilestoneEntry] = []
     var milestoneSheetState: GrowthMilestoneSheetState = .closed
     var milestoneDraft = GrowthMilestoneDraft()
+    var growthSummary = GrowthSummary(
+        kind: .guidance,
+        metric: .height,
+        latestValue: nil,
+        latestDate: nil
+    )
 
     var isPrecisionVisible: Bool {
         chartInteractionState != .idle

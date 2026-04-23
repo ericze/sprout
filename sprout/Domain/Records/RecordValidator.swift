@@ -62,6 +62,10 @@ struct RecordValidator {
             guard let value, value > 0 else {
                 throw RecordValidationError.missingPositiveValue(.weight)
             }
+        case .headCircumference:
+            guard let value, (30...60).contains(value) else {
+                throw RecordValidationError.missingPositiveValue(.headCircumference)
+            }
         case .diaper:
             guard let subtype = subType, DiaperSubtype(rawValue: subtype) != nil else {
                 throw RecordValidationError.invalidDiaperSubtype(subType)

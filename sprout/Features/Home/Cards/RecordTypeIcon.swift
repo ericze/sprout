@@ -15,7 +15,7 @@ struct RecordTypeIcon: View {
             case .diaper:
                 DiaperIcon(color: AppTheme.Colors.primaryText)
                     .frame(width: 17, height: 17)
-            case .sleep, .height, .weight:
+            case .sleep, .height, .weight, .headCircumference:
                 Image(systemName: icon.systemName)
                     .font(.system(size: 17, weight: .regular))
                     .foregroundStyle(AppTheme.Colors.primaryText)
