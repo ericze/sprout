@@ -15,7 +15,6 @@ final class GrowthStore {
     @ObservationIgnored private var repository: GrowthRecordRepository?
     @ObservationIgnored private var milestoneRepository: GrowthMilestoneRepository?
     @ObservationIgnored private var lastDeletedMilestone: GrowthMilestoneEntry?
-    @ObservationIgnored private weak var modelContext: ModelContext?
     @ObservationIgnored private let formatter: GrowthFormatter
     @ObservationIgnored private let summaryBuilder: GrowthSummaryBuilder
     @ObservationIgnored private let localizationService: LocalizationService
@@ -80,7 +79,6 @@ extension GrowthStore {
         if milestoneRepository == nil {
             milestoneRepository = GrowthMilestoneRepository(modelContext: modelContext)
         }
-        self.modelContext = modelContext
     }
 
     func updateHeaderConfig(_ config: HomeHeaderConfig) {
@@ -648,15 +646,9 @@ extension GrowthStore {
     }
 
     private func fetchMilestoneDates() -> [Date] {
-        guard let modelContext else { return [] }
+        guard let milestoneRepository else { return [] }
         do {
-            let descriptor = FetchDescriptor<MemoryEntry>(
-                predicate: #Predicate<MemoryEntry> { entry in
-                    entry.isMilestone == true
-                },
-                sortBy: [SortDescriptor(\.createdAt, order: .forward)]
-            )
-            return try modelContext.fetch(descriptor).map(\.createdAt)
+            return try milestoneRepository.fetchMilestones(for: headerConfig.babyID).map(\.occurredAt)
         } catch {
             logPersistenceError(error, message: "Fetch milestone dates failed")
             return []

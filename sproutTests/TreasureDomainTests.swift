@@ -243,6 +243,7 @@ struct TreasureDomainTests {
         #expect(digest.textCount == 1)
         #expect(digest.photoCount == 0)
         #expect(digest.milestoneCount == 0)
+        #expect(digest.growthMilestoneCount == 0)
         #expect(digest.growthRecordCount == 0)
         #expect(digest.firstTasteTags.isEmpty)
     }
@@ -277,6 +278,38 @@ struct TreasureDomainTests {
 
         #expect(digest.firstTasteTags == ["apple", "banana"])
         #expect(digest.growthRecordCount == 1)
+    }
+
+    @Test("WeeklyDigestBuilder includes growth milestones in milestone counts")
+    func testWeeklyDigestBuilderIncludesGrowthMilestones() throws {
+        let weekStart = makeDate(year: 2026, month: 4, day: 6)
+        let weekEnd = makeDate(year: 2026, month: 4, day: 12)
+
+        let entry = MemoryEntry(
+            createdAt: makeDate(year: 2026, month: 4, day: 7),
+            ageInDays: 90,
+            imageLocalPaths: [],
+            note: "A note",
+            isMilestone: false
+        )
+        let milestone = DigestGrowthMilestone(
+            id: UUID(),
+            title: "第一次翻身",
+            occurredAt: makeDate(year: 2026, month: 4, day: 8)
+        )
+
+        let builder = WeeklyDigestBuilder(calendar: Self.calendar)
+        let digest = builder.build(
+            entries: [entry],
+            milestones: [milestone],
+            growthRecords: [],
+            weekStart: weekStart,
+            weekEnd: weekEnd
+        )
+
+        #expect(digest.growthMilestoneCount == 1)
+        #expect(digest.milestoneCount == 1)
+        #expect(digest.milestones.first?.title == "第一次翻身")
     }
 
     @Test("Composer digest-based overload generates letter with metadata")

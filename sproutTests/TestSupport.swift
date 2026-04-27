@@ -80,11 +80,25 @@ func makeGrowthStore(
     preferenceStore: GrowthMetricPreferenceStore? = nil,
     productConfig: GrowthProductConfig = .appDefault,
     chartInteractionController: GrowthChartInteractionController = GrowthChartInteractionController()
-) -> GrowthStore {
+) throws -> GrowthStore {
     let calendar = Calendar(identifier: .gregorian)
+    let headerConfig = HomeHeaderConfig(
+        babyName: "Test Baby",
+        birthDate: calendar.date(byAdding: .day, value: -128, to: environment.now.value) ?? environment.now.value,
+        babyID: UUID()
+    )
+    let baby = BabyProfile(
+        id: headerConfig.babyID,
+        name: headerConfig.babyName,
+        birthDate: headerConfig.birthDate,
+        createdAt: environment.now.value.addingTimeInterval(-3_600),
+        isActive: true
+    )
+    environment.modelContext.insert(baby)
+    try environment.modelContext.save()
 
     return GrowthStore(
-        headerConfig: .placeholder,
+        headerConfig: headerConfig,
         repository: environment.growthRepository,
         formatter: GrowthFormatter(calendar: calendar),
         localizationService: environment.localizationService,

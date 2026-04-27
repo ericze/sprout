@@ -122,9 +122,9 @@ extension TreasureRepository {
         let growthRecords = try fetchGrowthRecords(in: range)
         let existingLetter = try fetchWeeklyLetter(for: normalizedWeekStart)
 
-        let digestMilestones = growthRecords
-            .filter { $0.type == RecordType.height.rawValue || $0.type == RecordType.weight.rawValue || $0.type == RecordType.headCircumference.rawValue }
-            .map { DigestGrowthRecord(id: $0.id, type: $0.type, value: $0.value, timestamp: $0.timestamp) }
+        let digestMilestones = milestones.map {
+            DigestGrowthMilestone(id: $0.id, title: $0.title, occurredAt: $0.occurredAt)
+        }
 
         let digest = digestBuilder.build(
             entries: entries,
@@ -141,37 +141,7 @@ extension TreasureRepository {
             languageCode: languageCode
         )
 
-        let milestoneLetter = composer.compose(
-            entries: entries,
-            milestones: milestones,
-            weekStart: normalizedWeekStart,
-            weekEnd: weekEnd,
-            generatedAt: generatedAt
-        )
-
-        let newLetter: WeeklyLetter?
-        switch (digestLetter, milestoneLetter) {
-        case (let d?, _):
-            if let m = milestoneLetter {
-                newLetter = WeeklyLetter(
-                    weekStart: d.weekStart,
-                    weekEnd: d.weekEnd,
-                    density: d.density,
-                    collapsedText: m.collapsedText,
-                    expandedText: m.expandedText,
-                    languageCode: d.languageCode,
-                    sourceSignature: d.sourceSignature,
-                    generatedBy: d.generatedBy,
-                    generatedAt: d.generatedAt
-                )
-            } else {
-                newLetter = d
-            }
-        case (nil, let m?):
-            newLetter = m
-        case (nil, nil):
-            newLetter = nil
-        }
+        let newLetter = digestLetter
 
         switch (existingLetter, newLetter) {
         case let (existing?, replacement?):

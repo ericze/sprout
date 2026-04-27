@@ -9,7 +9,7 @@ struct GrowthStoreTests {
     @Test("save milestone refreshes timeline and shows undo toast")
     func testSaveMilestoneRefreshesAndShowsUndo() throws {
         let env = try makeTestEnvironment(now: Date(timeIntervalSince1970: 1_710_000_000))
-        let store = makeGrowthStore(environment: env)
+        let store = try makeGrowthStore(environment: env)
         store.configure(modelContext: env.modelContext)
         store.handle(.onAppear)
 
@@ -32,14 +32,15 @@ struct GrowthStoreTests {
             Issue.record("milestoneSheetState should be .closed, got \(store.viewState.milestoneSheetState)")
         }
         #expect(store.viewState.milestones.count == 1)
-        #expect(store.viewState.milestones[0].title == "First Smile")
+        let milestone = try #require(store.viewState.milestones.first)
+        #expect(milestone.title == "First Smile")
         #expect(store.viewState.undoToast != nil)
     }
 
     @Test("delete milestone removes entry and offers undo")
     func testDeleteMilestoneRemovesAndOffersUndo() throws {
         let env = try makeTestEnvironment(now: Date(timeIntervalSince1970: 1_710_000_000))
-        let store = makeGrowthStore(environment: env)
+        let store = try makeGrowthStore(environment: env)
         store.configure(modelContext: env.modelContext)
         store.handle(.onAppear)
 
@@ -54,7 +55,7 @@ struct GrowthStoreTests {
         store.handle(.saveMilestone)
         #expect(store.viewState.milestones.count == 1)
 
-        let milestoneID = store.viewState.milestones[0].id
+        let milestoneID = try #require(store.viewState.milestones.first?.id)
 
         // Delete it
         store.handle(.deleteMilestone(milestoneID))
@@ -67,7 +68,7 @@ struct GrowthStoreTests {
     @Test("undo deleted milestone restores entry")
     func testUndoDeletedMilestoneRestoresEntry() throws {
         let env = try makeTestEnvironment(now: Date(timeIntervalSince1970: 1_710_000_000))
-        let store = makeGrowthStore(environment: env)
+        let store = try makeGrowthStore(environment: env)
         store.configure(modelContext: env.modelContext)
         store.handle(.onAppear)
 
@@ -82,7 +83,7 @@ struct GrowthStoreTests {
         store.handle(.saveMilestone)
         #expect(store.viewState.milestones.count == 1)
 
-        let milestoneID = store.viewState.milestones[0].id
+        let milestoneID = try #require(store.viewState.milestones.first?.id)
 
         // Delete it
         store.handle(.deleteMilestone(milestoneID))
@@ -92,7 +93,8 @@ struct GrowthStoreTests {
         store.handle(.undoDeletedMilestone)
 
         #expect(store.viewState.milestones.count == 1)
-        #expect(store.viewState.milestones[0].title == "First Crawl")
+        let restoredMilestone = try #require(store.viewState.milestones.first)
+        #expect(restoredMilestone.title == "First Crawl")
         #expect(store.viewState.undoToast == nil)
     }
 }

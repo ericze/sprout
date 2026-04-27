@@ -4,19 +4,20 @@ struct WeeklyDigest: Equatable {
     let weekStart: Date
     let weekEnd: Date
     let memories: [MemoryEntry]
-    let milestones: [DigestGrowthRecord]
+    let milestones: [DigestGrowthMilestone]
     let growthRecordCount: Int
     let firstTasteTags: [String]
     let photoCount: Int
     let textCount: Int
+    let memoryMilestoneCount: Int
+    let growthMilestoneCount: Int
     let milestoneCount: Int
 }
 
-struct DigestGrowthRecord: Equatable {
+struct DigestGrowthMilestone: Equatable {
     let id: UUID
-    let type: String
-    let value: Double?
-    let timestamp: Date
+    let title: String
+    let occurredAt: Date
 }
 
 struct WeeklyDigestBuilder {
@@ -28,7 +29,7 @@ struct WeeklyDigestBuilder {
 
     func build(
         entries: [MemoryEntry],
-        milestones: [DigestGrowthRecord],
+        milestones: [DigestGrowthMilestone],
         growthRecords: [RecordItem],
         weekStart: Date,
         weekEnd: Date
@@ -37,7 +38,7 @@ struct WeeklyDigestBuilder {
         let range = weekStart ... rangeEnd
 
         let filteredEntries = entries.filter { range.contains($0.createdAt) }
-        let filteredMilestones = milestones.filter { range.contains($0.timestamp) }
+        let filteredMilestones = milestones.filter { range.contains($0.occurredAt) }
         let filteredGrowthRecords = growthRecords.filter { range.contains($0.timestamp) }
 
         let photoCount = filteredEntries.reduce(into: 0) { count, entry in
@@ -46,7 +47,9 @@ struct WeeklyDigestBuilder {
         let textCount = filteredEntries.filter { entry in
             !(entry.note?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
         }.count
-        let milestoneCount = filteredEntries.filter { $0.isMilestone }.count
+        let memoryMilestoneCount = filteredEntries.filter(\.isMilestone).count
+        let growthMilestoneCount = filteredMilestones.count
+        let milestoneCount = memoryMilestoneCount + growthMilestoneCount
 
         let firstTasteTags = collectFirstTasteTags(from: growthRecords, in: range)
 
@@ -59,6 +62,8 @@ struct WeeklyDigestBuilder {
             firstTasteTags: firstTasteTags,
             photoCount: photoCount,
             textCount: textCount,
+            memoryMilestoneCount: memoryMilestoneCount,
+            growthMilestoneCount: growthMilestoneCount,
             milestoneCount: milestoneCount
         )
     }

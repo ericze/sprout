@@ -322,6 +322,7 @@ struct WeeklyLetterComposer {
         firstNoteSnippet: String
     ) -> String {
         var sections: [String] = []
+        let growthSummary = makeDigestGrowthMilestoneSummaryEnglish(digest.milestones)
 
         if digest.growthRecordCount > 0 {
             sections.append("\(digest.growthRecordCount) growth measurement\(digest.growthRecordCount == 1 ? "" : "s")")
@@ -332,12 +333,15 @@ struct WeeklyLetterComposer {
             sections.append("new tastes: \(tagList)")
         }
 
-        if digest.milestoneCount > 0 {
-            sections.append("\(digest.milestoneCount) milestone\(digest.milestoneCount == 1 ? "" : "s")")
+        if let growthSummary {
+            sections.append(growthSummary)
         }
 
         switch density {
         case .silent:
+            if let growthSummary {
+                return "One memory, quietly kept. \(growthSummary)."
+            }
             return "One memory, quietly kept."
         case .normal:
             let base = "\(entries.count) memories this week"
@@ -350,8 +354,8 @@ struct WeeklyLetterComposer {
             return "\(parts.joined(separator: ", ")). Small moments stayed here, gently and without hurry."
         case .dense:
             var header = "More than usual this week."
-            if digest.milestoneCount > 0 {
-                header += " \(digest.milestoneCount) star\(digest.milestoneCount == 1 ? "" : "s") were gently marked."
+            if digest.memoryMilestoneCount > 0 {
+                header += " \(digest.memoryMilestoneCount) star\(digest.memoryMilestoneCount == 1 ? "" : "s") were gently marked."
             }
             let body = "\(entries.count) memories spread across the week, with \(digest.photoCount) photo\(digest.photoCount == 1 ? "" : "s") and \(digest.textCount) note\(digest.textCount == 1 ? "" : "s") tucked in."
             let extra = sections.isEmpty ? "" : " " + sections.joined(separator: "; ") + "."
@@ -372,6 +376,7 @@ struct WeeklyLetterComposer {
         firstNoteSnippet: String
     ) -> String {
         var sections: [String] = []
+        let growthSummary = makeDigestGrowthMilestoneSummaryChinese(digest.milestones)
 
         if digest.growthRecordCount > 0 {
             sections.append("\(digest.growthRecordCount) 条成长记录")
@@ -382,12 +387,15 @@ struct WeeklyLetterComposer {
             sections.append("新的尝试：\(tagList)")
         }
 
-        if digest.milestoneCount > 0 {
-            sections.append("\(digest.milestoneCount) 个星标")
+        if let growthSummary {
+            sections.append(growthSummary)
         }
 
         switch density {
         case .silent:
+            if let growthSummary {
+                return "这一周只留下一条记忆，安静收好。\(growthSummary)。"
+            }
             return "这一周只留下一条记忆，安静收好。"
         case .normal:
             var parts = ["这一周留下了 \(entries.count) 条记忆"]
@@ -401,8 +409,8 @@ struct WeeklyLetterComposer {
             return "\(parts.joined(separator: "，"))。几件小事安静地留了下来，时间也在这些片刻里慢慢往前。"
         case .dense:
             var prefix = "这一周比平时更满一些。"
-            if digest.milestoneCount > 0 {
-                prefix += " 其中有 \(digest.milestoneCount) 个小小的星标。"
+            if digest.memoryMilestoneCount > 0 {
+                prefix += " 其中有 \(digest.memoryMilestoneCount) 个小小的星标。"
             }
 
             let middle = "照片和文字让这一页更厚了一点，\(entries.count) 条记忆慢慢铺开。"
@@ -419,9 +427,27 @@ struct WeeklyLetterComposer {
 
     private func buildSourceSignature(digest: WeeklyDigest) -> String {
         let memoryHash = digest.memories.map(\.id.uuidString).sorted().joined(separator: ",")
+        let milestoneHash = digest.milestones.map(\.id.uuidString).sorted().joined(separator: ",")
         let growthHash = "\(digest.growthRecordCount)"
         let tasteHash = digest.firstTasteTags.joined(separator: ",")
-        return "\(memoryHash)|\(growthHash)|\(tasteHash)"
+        return "\(memoryHash)|\(milestoneHash)|\(growthHash)|\(tasteHash)"
+    }
+
+    private func makeDigestGrowthMilestoneSummaryEnglish(_ milestones: [DigestGrowthMilestone]) -> String? {
+        guard !milestones.isEmpty else { return nil }
+        let titles = milestones.map(\.title).prefix(3).joined(separator: ", ")
+        let count = milestones.count
+        if count == 1 {
+            return "A growth milestone reached: \(titles)"
+        }
+        return "\(count) growth milestones reached: \(titles)"
+    }
+
+    private func makeDigestGrowthMilestoneSummaryChinese(_ milestones: [DigestGrowthMilestone]) -> String? {
+        guard !milestones.isEmpty else { return nil }
+        let titles = milestones.map(\.title).prefix(3).joined(separator: "、")
+        let count = milestones.count
+        return "本周宝宝达成了 \(count) 个成长里程碑：\(titles)"
     }
 
     private func isAllowed(_ text: String, density: WeeklyLetterDensity, isCollapsed: Bool) -> Bool {
