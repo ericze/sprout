@@ -99,6 +99,7 @@ xcodebuild test \
 - 不硬编码业务页面颜色，统一走语义化设计 token。
 - 不使用纯黑文本、高饱和提示色或刺眼错误红。
 - 错误与危险状态优先通过文案、层级和确认流程表达，不靠强刺激视觉。
+- 成长解读等解释性文本不使用 emoji 作为前缀或图标，避免缺字、误读和额外视觉噪音。
 - 修改 SwiftData schema 时，staged migration 中每个版本的模型集合必须保持唯一；不要用“删除后再新增同一模型集合”的方式推进版本，否则会触发重复 version checksum。
 - 变更保持最小 diff，避免巨型 ViewModel、God Object 和无关重构。
 

@@ -114,7 +114,7 @@ struct GrowthTextRenderer {
                 service: localizationService,
                 locale: localeFormatter.locale,
                 en: "Waiting for the first %@ record",
-                zh: "✨ 等待第一条%@记录",
+                zh: "等待第一条%@记录",
                 arguments: [metricTitle(message.metric)]
             )
         case .inviteFirstRecord:
@@ -123,7 +123,7 @@ struct GrowthTextRenderer {
                 service: localizationService,
                 locale: localeFormatter.locale,
                 en: "Record the first %@ entry. The line can begin from here.",
-                zh: "✨ 记录第一条%@数据，生命线会从这里开始。",
+                zh: "记录第一条%@数据，生命线会从这里开始。",
                 arguments: [metricTitle(message.metric)]
             )
         case .firstRecordLogged:
@@ -132,7 +132,7 @@ struct GrowthTextRenderer {
                 service: localizationService,
                 locale: localeFormatter.locale,
                 en: "Logged the first %@ record",
-                zh: "✨ 已记录第一条%@数据",
+                zh: "已记录第一条%@数据",
                 arguments: [metricTitle(message.metric)]
             )
         case let .change(intervalDays, direction, deltaValue):
@@ -183,7 +183,7 @@ struct GrowthTextRenderer {
                 service: localizationService,
                 locale: localeFormatter.locale,
                 en: "Logged a change since %@ ago",
-                zh: "✨ 记录了距上次%@的变化",
+                zh: "记录了距上次%@的变化",
                 arguments: [localeFormatter.ageText(fromDays: intervalDays, style: .detail)]
             )
         }

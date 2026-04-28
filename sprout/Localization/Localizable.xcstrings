@@ -285,7 +285,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "✨ 记录了距上次%1$@的变化"
+            "value" : "记录了距上次%1$@的变化"
           }
         }
       }
@@ -319,7 +319,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "✨ 已记录第一条%1$@数据"
+            "value" : "已记录第一条%1$@数据"
           }
         }
       }
@@ -336,7 +336,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "✨ 记录第一条%1$@数据，生命线会从这里开始。"
+            "value" : "记录第一条%1$@数据，生命线会从这里开始。"
           }
         }
       }
@@ -370,7 +370,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "✨ 等待第一条%1$@记录"
+            "value" : "等待第一条%1$@记录"
           }
         }
       }

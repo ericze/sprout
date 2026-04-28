@@ -8,7 +8,7 @@ struct GrowthAIWhisperCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top) {
+            HStack(alignment: .center) {
                 Text(L10n.text("growth.ai.title", en: "Growth Insight", zh: "成长解读"))
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(AppTheme.Colors.secondaryText)
@@ -32,19 +32,24 @@ struct GrowthAIWhisperCard: View {
                 )
             }
 
-            Text(
-                state == .expanded
-                    ? textRenderer.aiText(content.expanded)
-                    : textRenderer.aiCollapsedText(content.collapsed)
-            )
+            Text(bodyText)
                 .font(.system(size: 15, weight: .regular))
                 .foregroundStyle(AppTheme.Colors.primaryText)
+                .lineSpacing(3)
+                .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(22)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(AppTheme.Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.card, style: .continuous))
         .shadow(color: AppTheme.Shadow.color, radius: AppTheme.Shadow.radius, y: AppTheme.Shadow.y)
+    }
+
+    private var bodyText: String {
+        state == .expanded
+            ? textRenderer.aiText(content.expanded)
+            : textRenderer.aiCollapsedText(content.collapsed)
     }
 }
