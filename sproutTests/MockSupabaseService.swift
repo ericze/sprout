@@ -21,7 +21,11 @@ actor MockSupabaseService: SupabaseServicing {
     var operations: [Operation]
     private var forcedSignInResult: Result<SupabaseSession, Error>?
     private var forcedSignUpResult: Result<SupabaseSession, Error>?
+    private var forcedServerNowError: Error?
+    private var forcedBabyUpsertError: Error?
     private var forcedRecordUpsertError: Error?
+    private var forcedMemoryUpsertError: Error?
+    private var forcedSoftDeleteError: Error?
     private var signOutCount: Int
 
     init(
@@ -50,8 +54,24 @@ actor MockSupabaseService: SupabaseServicing {
         forcedSignUpResult = result
     }
 
+    func stubServerNowError(_ error: Error?) {
+        forcedServerNowError = error
+    }
+
+    func stubBabyUpsertError(_ error: Error?) {
+        forcedBabyUpsertError = error
+    }
+
     func stubRecordUpsertError(_ error: Error?) {
         forcedRecordUpsertError = error
+    }
+
+    func stubMemoryUpsertError(_ error: Error?) {
+        forcedMemoryUpsertError = error
+    }
+
+    func stubSoftDeleteError(_ error: Error?) {
+        forcedSoftDeleteError = error
     }
 
     func readSignOutCount() -> Int {
@@ -93,10 +113,16 @@ actor MockSupabaseService: SupabaseServicing {
     }
 
     func fetchServerNow() async throws -> Date {
+        if let forcedServerNowError {
+            throw forcedServerNowError
+        }
         serverNow
     }
 
     func upsertBabyProfile(_ profile: BabyProfileDTO, expectedVersion: Int64?) async throws -> BabyProfileDTO {
+        if let forcedBabyUpsertError {
+            throw forcedBabyUpsertError
+        }
         operations.append(
             .upsertBabyProfile(
                 id: profile.id,
@@ -122,6 +148,9 @@ actor MockSupabaseService: SupabaseServicing {
     }
 
     func upsertMemoryEntry(_ entry: MemoryEntryDTO, expectedVersion: Int64?) async throws -> MemoryEntryDTO {
+        if let forcedMemoryUpsertError {
+            throw forcedMemoryUpsertError
+        }
         operations.append(
             .upsertMemoryEntry(
                 id: entry.id,
@@ -146,6 +175,9 @@ actor MockSupabaseService: SupabaseServicing {
 
     func softDelete(table: SupabaseTable, id: UUID, expectedVersion: Int64?) async throws {
         operations.append(.softDelete(table: table, id: id, expectedVersion: expectedVersion))
+        if let forcedSoftDeleteError {
+            throw forcedSoftDeleteError
+        }
         try validateDeletion(table: table, id: id, expectedVersion: expectedVersion)
         deletedRows.append((table, id))
         switch table {

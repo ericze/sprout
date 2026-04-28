@@ -206,6 +206,25 @@ struct SproutAppStartupTests {
         #expect(modelSignatures.last == Self.modelSignature(SproutSchemaRegistry.models))
     }
 
+    @Test("Migration plan container starts without duplicate version checksum failure")
+    func testMigrationPlanContainerStartsWithoutDuplicateVersionChecksums() throws {
+        let schema = SproutSchemaRegistry.schema
+        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+
+        do {
+            let container = try ModelContainer(
+                for: schema,
+                migrationPlan: SproutMigrationPlan.self,
+                configurations: [configuration]
+            )
+            #expect(!container.configurations.isEmpty)
+        } catch {
+            let message = String(describing: error)
+            #expect(!message.contains("Duplicate version checksums across stages detected"))
+            Issue.record(Comment(rawValue: "Expected migration-plan startup to succeed, got: \(message)"))
+        }
+    }
+
     // MARK: - Helpers
 
     private static func modelSignature(_ schema: any VersionedSchema.Type) -> String {

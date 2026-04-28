@@ -784,10 +784,11 @@ enum SyncPhase {
 - [x] 删除待同步计数准确（`SyncEngineTests/pushPipelineDeletesInFixedOrder`）
 
 ### QA-E3 失败恢复
-- [ ] 断网时同步失败有提示
-- [ ] 恢复网络后可重试成功
-- [ ] 鉴权失效时有提示并引导登录
-- [x] 同步失败不影响本地新增记录（`SyncEngineTests/partialFailurePersistsEarlierSuccess`、dirty row pull skip tests）
+- [x] 断网 / 服务失败时同步失败有提示（`SyncEngineTests/offlineUpsertFailureRetriesWithoutDataLoss` 覆盖 error phase；`CloudSyncView` 展示克制错误文案）
+- [x] 恢复网络后可重试成功（`SyncEngineTests/offlineUpsertFailureRetriesWithoutDataLoss` 清除故障后再次 manual sync）
+- [x] 鉴权失效时有提示并引导登录（`SyncEngineTests/unauthenticatedSyncKeepsLocalPendingRows` 覆盖 sync error；未登录 Cloud Sync 页进入账号提示）
+- [x] 同步失败不影响本地新增记录（`SyncEngineTests/partialFailurePersistsEarlierSuccess`、`offlineUpsertFailureRetriesWithoutDataLoss`、dirty row pull skip tests）
+- [x] 远端删除失败不会清掉本地 tombstone（`SyncEngineTests/softDeleteFailureKeepsTombstoneQueuedForRetry`）
 
 ### QA-E4 退出登录
 - [x] 退出登录后同步停止（Cloud Sync 手动入口仅 authenticated 时触发；`AuthManagerTests/signOutDoesNotClearBinding` 覆盖退出状态）
@@ -795,9 +796,9 @@ enum SyncPhase {
 - [ ] 重新登录后可继续同步（需真实账号回归）
 
 ### QA-E5 本地 schema 迁移
-- [ ] 启动容器创建不触发 `Duplicate version checksums across stages detected`
-- [ ] 当前默认 schema 可插入并读取所有现行模型，包括 Growth milestones
-- [ ] migration plan 的 schema 模型集合不跨版本重复
+- [x] 启动容器创建不触发 `Duplicate version checksums across stages detected`（`SproutAppStartupTests/testMigrationPlanContainerStartsWithoutDuplicateVersionChecksums`）
+- [x] 当前默认 schema 可插入并读取所有现行模型，包括 Growth milestones（`SproutAppStartupTests/testDefaultSchemaContainsAllModelTypes`）
+- [x] migration plan 的 schema 模型集合不跨版本重复（`SproutAppStartupTests/testMigrationPlanDoesNotRepeatModelShapes`）
 
 ### QA-E6 真实后端 Smoke
 - [x] 默认测试不需要真实凭据（`RealSupabaseServiceSmokeTests` 未设置环境变量时直接通过）

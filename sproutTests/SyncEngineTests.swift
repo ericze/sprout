@@ -343,6 +343,161 @@ struct SyncEngineTests {
         #expect(engine.syncUIState.phase == .error("boom"))
     }
 
+    @Test("unauthenticated sync reports an error without mutating local pending rows")
+    func unauthenticatedSyncKeepsLocalPendingRows() async throws {
+        let environment = try makeTestEnvironment(now: Date(timeIntervalSince1970: 1_710_360_000))
+        let baby = BabyProfile(name: "Local Only", birthDate: environment.now.value)
+        environment.modelContext.insert(baby)
+        try environment.modelContext.save()
+
+        let mock = MockSupabaseService()
+        let engine = SyncEngine(
+            modelContext: environment.modelContext,
+            supabaseService: mock,
+            currentUserIDProvider: { nil },
+            nowProvider: { environment.now.value }
+        )
+
+        await engine.performFullSync(reason: .manual)
+
+        let fetchedBaby = try fetchBaby(id: baby.id, in: environment.modelContext)
+        #expect(fetchedBaby?.syncState == .pendingUpsert)
+        #expect(fetchedBaby?.remoteVersion == nil)
+        #expect(engine.syncUIState.pendingUpsertCount == 1)
+        #expect(engine.syncUIState.phase == .error(SyncEngineError.unauthenticated.localizedDescription))
+        #expect(await mock.readOperations().isEmpty)
+    }
+
+    @Test("offline upsert failure keeps local data pending until retry succeeds")
+    func offlineUpsertFailureRetriesWithoutDataLoss() async throws {
+        let environment = try makeTestEnvironment(now: Date(timeIntervalSince1970: 1_710_370_000))
+        let userID = UUID()
+        let baby = BabyProfile(name: "Retry Baby", birthDate: environment.now.value)
+        environment.modelContext.insert(baby)
+        try environment.modelContext.save()
+
+        let mock = MockSupabaseService()
+        await mock.stubBabyUpsertError(StubSyncError.boom)
+        let engine = SyncEngine(
+            modelContext: environment.modelContext,
+            supabaseService: mock,
+            currentUserIDProvider: { userID },
+            nowProvider: { environment.now.value }
+        )
+
+        await engine.performFullSync(reason: .manual)
+
+        var fetchedBaby = try fetchBaby(id: baby.id, in: environment.modelContext)
+        #expect(fetchedBaby?.syncState == .pendingUpsert)
+        #expect(fetchedBaby?.remoteVersion == nil)
+        #expect(engine.syncUIState.pendingUpsertCount == 1)
+        #expect(engine.syncUIState.phase == .error("boom"))
+
+        await mock.stubBabyUpsertError(nil)
+        await engine.performFullSync(reason: .manual)
+
+        fetchedBaby = try fetchBaby(id: baby.id, in: environment.modelContext)
+        #expect(fetchedBaby?.syncState == .synced)
+        #expect(fetchedBaby?.remoteVersion == 1)
+        #expect(engine.syncUIState.pendingUpsertCount == 0)
+        #expect(engine.syncUIState.phase == .idle)
+        #expect(
+            await mock.readOperations() == [
+                .upsertBabyProfile(id: baby.id, expectedVersion: nil, avatarStoragePath: nil)
+            ]
+        )
+    }
+
+    @Test("pull failure after push keeps local data and leaves cursor unchanged")
+    func pullFailureAfterPushKeepsLocalDataAndCursor() async throws {
+        let serverNow = Date(timeIntervalSince1970: 1_710_380_000)
+        let environment = try makeTestEnvironment(now: serverNow)
+        let userID = UUID()
+        let baby = BabyProfile(name: "Pushed Before Pull", birthDate: environment.now.value)
+        environment.modelContext.insert(baby)
+        try environment.modelContext.save()
+
+        let mock = MockSupabaseService(serverNow: serverNow)
+        await mock.stubServerNowError(StubSyncError.boom)
+        let testDefaults = UserDefaults(suiteName: "sync-cursor-test-\(UUID().uuidString)")!
+        let cursorStore = SyncCursorStore(defaults: testDefaults, keyPrefix: "test.cursor")
+        let engine = SyncEngine(
+            modelContext: environment.modelContext,
+            supabaseService: mock,
+            currentUserIDProvider: { userID },
+            nowProvider: { environment.now.value },
+            cursorStore: cursorStore
+        )
+
+        await engine.performFullSync(reason: .manual)
+
+        let fetchedBaby = try fetchBaby(id: baby.id, in: environment.modelContext)
+        #expect(fetchedBaby?.name == "Pushed Before Pull")
+        #expect(fetchedBaby?.syncState == .synced)
+        #expect(fetchedBaby?.remoteVersion == 1)
+        #expect(cursorStore.load(for: userID).babyProfilesAt == nil)
+        #expect(engine.syncUIState.phase == .error("boom"))
+    }
+
+    @Test("soft delete failure keeps tombstone queued for retry")
+    func softDeleteFailureKeepsTombstoneQueuedForRetry() async throws {
+        let environment = try makeTestEnvironment(now: Date(timeIntervalSince1970: 1_710_390_000))
+        let userID = UUID()
+        let recordID = UUID()
+        let remoteRecord = RecordItemDTO(
+            id: recordID,
+            userID: userID,
+            babyID: UUID(),
+            type: RecordType.food.rawValue,
+            timestamp: environment.now.value,
+            value: nil,
+            leftNursingSeconds: 0,
+            rightNursingSeconds: 0,
+            subType: nil,
+            imageStoragePath: nil,
+            aiSummary: nil,
+            tags: nil,
+            note: nil,
+            createdAt: environment.now.value,
+            updatedAt: environment.now.value,
+            version: 2,
+            deletedAt: nil
+        )
+        let tombstone = SyncDeletionTombstone(
+            entityType: .recordItem,
+            entityID: recordID,
+            remoteVersion: 2,
+            readyAfter: environment.now.value
+        )
+        environment.modelContext.insert(tombstone)
+        try environment.modelContext.save()
+
+        let mock = MockSupabaseService(recordItems: [recordID: remoteRecord])
+        await mock.stubSoftDeleteError(StubSyncError.boom)
+        let engine = SyncEngine(
+            modelContext: environment.modelContext,
+            supabaseService: mock,
+            currentUserIDProvider: { userID },
+            nowProvider: { environment.now.value }
+        )
+
+        await engine.performFullSync(reason: .manual)
+
+        var remainingTombstones = try environment.modelContext.fetch(FetchDescriptor<SyncDeletionTombstone>())
+        #expect(remainingTombstones.count == 1)
+        #expect(remainingTombstones.first?.entityID == recordID)
+        #expect(engine.syncUIState.pendingDeletionCount == 1)
+        #expect(engine.syncUIState.phase == .error("boom"))
+
+        await mock.stubSoftDeleteError(nil)
+        await engine.performFullSync(reason: .manual)
+
+        remainingTombstones = try environment.modelContext.fetch(FetchDescriptor<SyncDeletionTombstone>())
+        #expect(remainingTombstones.isEmpty)
+        #expect(engine.syncUIState.pendingDeletionCount == 0)
+        #expect(engine.syncUIState.phase == .idle)
+    }
+
     @Test("full sync pulls remote rows into an empty local store and saves cursor")
     func fullSyncPullsRowsAndSavesCursor() async throws {
         let serverNow = Date(timeIntervalSince1970: 1_710_400_000)
