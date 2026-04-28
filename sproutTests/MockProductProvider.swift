@@ -7,6 +7,7 @@ final class MockProductProvider: ProductProvider, @unchecked Sendable {
     var mockEntitlements: [Transaction] = []
     var mockPurchaseResult: Transaction?
     var shouldThrow = false
+    var shouldThrowOnRestore = false
     var didRestore = false
 
     func fetchProducts(for ids: [String]) async throws -> [Product] {
@@ -24,7 +25,10 @@ final class MockProductProvider: ProductProvider, @unchecked Sendable {
         mockPurchaseResult
     }
 
-    func restorePurchases() async {
+    func restorePurchases() async throws {
+        if shouldThrowOnRestore {
+            throw NSError(domain: "test", code: -2, userInfo: [NSLocalizedDescriptionKey: "Restore unavailable"])
+        }
         didRestore = true
     }
 }

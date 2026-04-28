@@ -367,12 +367,15 @@ struct SubscriptionEntitlement {
 ### DEV-B2：Paywall 对齐
 **目标**
 - Paywall 文案与真实能力一致
+- 进度：已引入 `PaywallContent` 作为 Paywall 主承诺来源；当前未通过验收的 Pro 能力不会进入可购买权益列表，订阅 CTA 暂不开放
 
 **实现要求**
 - 删除未上线承诺
 - 替换 Terms / Privacy 为真实链接
 - 增加 restore purchase
 - 增加 plan 选择与失败提示
+- Terms / Privacy 已改为仓库内 `docs/legal/terms-of-service.md` 与 `docs/legal/privacy-policy.md` 的公开链接来源
+- restore / purchase 失败会向 Paywall 展示克制错误提示，不再静默吞掉失败
 
 ### DEV-B3：Feature Gating
 **目标**

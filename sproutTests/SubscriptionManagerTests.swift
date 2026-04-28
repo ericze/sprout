@@ -138,8 +138,19 @@ final class SubscriptionManagerTests: XCTestCase {
     }
 
     func test_restorePurchases_callsProvider() async {
-        await manager.restorePurchases()
+        try? await manager.restorePurchases()
         XCTAssertTrue(provider.didRestore)
+    }
+
+    func test_restorePurchases_propagatesProviderError() async {
+        provider.shouldThrowOnRestore = true
+
+        do {
+            try await manager.restorePurchases()
+            XCTFail("Expected restore to throw")
+        } catch {
+            XCTAssertEqual((error as NSError).domain, "test")
+        }
     }
 
     func test_cache_readWrite() {

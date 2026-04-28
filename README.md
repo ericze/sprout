@@ -97,6 +97,8 @@ xcodebuild test \
 - View 本地状态按 SwiftUI 习惯使用 `@State`、`@Binding`、`@Environment`、`@FocusState`、`@Bindable`。
 - 应用内语言切换统一通过 `AppLanguageManager` 持久化并更新 `LocalizationService`，不要在页面里直接改静态本地化状态。
 - Pro 权益入口统一走 `ProCapability` 与 `SubscriptionManager.allows(_:)`；页面和菜单只声明 `requiredCapability`，不要散落原始 `isPro` 判断。
+- Paywall 主承诺统一来自 `PaywallContent.promotedCapabilities`；未通过发布验收的能力不得出现在可购买权益列表中。
+- Paywall 的 Terms / Privacy 链接维护在 `docs/legal` 对应文档，禁止使用 `example.com` 占位链接。
 - 公共类和公开函数保持清晰命名，复杂业务决策才添加注释。
 - 不硬编码业务页面颜色，统一走语义化设计 token。
 - 不使用纯黑文本、高饱和提示色或刺眼错误红。

@@ -51,8 +51,8 @@ final class SubscriptionManager {
         return transaction
     }
 
-    func restorePurchases() async {
-        await provider.restorePurchases()
+    func restorePurchases() async throws {
+        try await provider.restorePurchases()
         await refreshStatus()
     }
 

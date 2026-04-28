@@ -12,7 +12,7 @@ protocol ProductProvider: Sendable {
     func fetchProducts(for ids: [String]) async throws -> [Product]
     func fetchCurrentEntitlements() async throws -> [Transaction]
     func purchase(_ product: Product) async throws -> StoreKit.Transaction?
-    func restorePurchases() async
+    func restorePurchases() async throws
 }
 
 struct StoreKitProvider: ProductProvider {
@@ -46,7 +46,7 @@ struct StoreKitProvider: ProductProvider {
         }
     }
 
-    func restorePurchases() async {
-        try? await AppStore.sync()
+    func restorePurchases() async throws {
+        try await AppStore.sync()
     }
 }

@@ -7,8 +7,10 @@ struct PaywallView: View {
 
     @State private var selectedPlanIndex: Int = 1
     @State private var isPurchasing = false
+    @State private var errorMessage: String?
 
     private var selectedProduct: Product? {
+        guard PaywallContent.isPurchaseEnabled else { return nil }
         guard !subscriptionManager.products.isEmpty else { return nil }
         let sorted = subscriptionManager.products.sorted { $0.price < $1.price }
         guard selectedPlanIndex < sorted.count else { return nil }
@@ -22,8 +24,10 @@ struct PaywallView: View {
                     closeButton
                     heroSection
                     featureList
-                    planSelector
-                    subscribeButton
+                    if PaywallContent.isPurchaseEnabled {
+                        planSelector
+                        subscribeButton
+                    }
                     footer
                 }
                 .padding(.horizontal, AppTheme.Spacing.screenHorizontal)
@@ -31,6 +35,19 @@ struct PaywallView: View {
             }
             .background(AppTheme.Colors.background)
             .navigationBarHidden(true)
+        }
+        .alert(
+            L10n.text("paywall.error.title", en: "Purchase needs attention", zh: "购买需要稍后再试"),
+            isPresented: Binding(
+                get: { errorMessage != nil },
+                set: { if !$0 { errorMessage = nil } }
+            )
+        ) {
+            Button(L10n.text("common.ok", en: "OK", zh: "好"), role: .cancel) {
+                errorMessage = nil
+            }
+        } message: {
+            Text(errorMessage ?? "")
         }
     }
 
@@ -67,27 +84,35 @@ struct PaywallView: View {
 
     private var featureList: some View {
         VStack(spacing: 16) {
-            PaywallFeatureRow(
-                iconName: "figure.2.and.child",
-                title: L10n.text("paywall.feature.multibaby.title", en: "Multi-Baby", zh: "多宝宝管理"),
-                detail: L10n.text("paywall.feature.multibaby.detail", en: "Track multiple babies", zh: "记录多个宝宝的成长")
-            )
-            PaywallFeatureRow(
-                iconName: "person.2",
-                title: L10n.text("paywall.feature.family.title", en: "Family Group", zh: "家庭组"),
-                detail: L10n.text("paywall.feature.family.detail", en: "Invite family to co-record", zh: "邀请家人共同记录")
-            )
-            PaywallFeatureRow(
-                iconName: "cloud",
-                title: L10n.text("paywall.feature.cloud.title", en: "Cloud Sync", zh: "云端同步"),
-                detail: L10n.text("paywall.feature.cloud.detail", en: "Secure data backup", zh: "数据安全备份")
-            )
-            PaywallFeatureRow(
-                iconName: "brain",
-                title: L10n.text("paywall.feature.ai.title", en: "AI Assistant", zh: "AI 智能助手"),
-                detail: L10n.text("paywall.feature.ai.detail", en: "Food advice, analysis & reports", zh: "辅食建议、分析、周报")
-            )
+            if PaywallContent.promotedFeatures.isEmpty {
+                availabilityNotice
+            } else {
+                ForEach(PaywallContent.promotedFeatures) { feature in
+                    PaywallFeatureRow(
+                        iconName: feature.iconName,
+                        title: L10n.text(feature.titleKey, en: feature.titleEN, zh: feature.titleZH),
+                        detail: L10n.text(feature.detailKey, en: feature.detailEN, zh: feature.detailZH)
+                    )
+                }
+            }
         }
+    }
+
+    private var availabilityNotice: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(L10n.text("paywall.readiness.title", en: "Pro is not for sale yet", zh: "Pro 暂不开放购买"))
+                .font(AppTheme.Typography.cardTitle)
+                .foregroundStyle(AppTheme.Colors.primaryText)
+
+            Text(L10n.text("paywall.readiness.detail", en: "We will only open subscriptions after the promised Pro capabilities pass release checks. Your local records remain available.", zh: "只有在承诺的 Pro 能力通过发布验收后，订阅才会开放。本地记录会照常可用。"))
+                .font(AppTheme.Typography.cardBody)
+                .foregroundStyle(AppTheme.Colors.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppTheme.Colors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.card, style: .continuous))
     }
 
     private var planSelector: some View {
@@ -171,11 +196,11 @@ struct PaywallView: View {
             }
 
             HStack(spacing: 16) {
-                Link(L10n.text("paywall.terms", en: "Terms of Service", zh: "服务条款"), destination: URL(string: "https://example.com/terms")!)
+                Link(L10n.text("paywall.terms", en: "Terms of Service", zh: "服务条款"), destination: PaywallContent.termsURL)
                     .font(AppTheme.Typography.meta)
                     .foregroundStyle(AppTheme.Colors.tertiaryText)
 
-                Link(L10n.text("paywall.privacy", en: "Privacy Policy", zh: "隐私政策"), destination: URL(string: "https://example.com/privacy")!)
+                Link(L10n.text("paywall.privacy", en: "Privacy Policy", zh: "隐私政策"), destination: PaywallContent.privacyURL)
                     .font(AppTheme.Typography.meta)
                     .foregroundStyle(AppTheme.Colors.tertiaryText)
             }
@@ -190,7 +215,11 @@ struct PaywallView: View {
                 _ = try await subscriptionManager.purchase(product)
                 dismiss()
             } catch {
-                // User cancelled or system error — no-op for cancellation
+                errorMessage = L10n.text(
+                    "paywall.purchase.failed",
+                    en: "The purchase could not be completed. Please try again later.",
+                    zh: "这次购买没有完成，请稍后再试。"
+                )
             }
             isPurchasing = false
         }
@@ -198,7 +227,15 @@ struct PaywallView: View {
 
     private func performRestore() {
         Task {
-            await subscriptionManager.restorePurchases()
+            do {
+                try await subscriptionManager.restorePurchases()
+            } catch {
+                errorMessage = L10n.text(
+                    "paywall.restore.failed",
+                    en: "Purchases could not be restored right now. Please try again later.",
+                    zh: "现在暂时无法恢复购买，请稍后再试。"
+                )
+            }
         }
     }
 }
