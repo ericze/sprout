@@ -29,6 +29,10 @@ final class SubscriptionManager {
         isPro
     }
 
+    func allows(_ capability: ProCapability) -> Bool {
+        isPro
+    }
+
     func loadProducts() async {
         isLoading = true
         do {

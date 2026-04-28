@@ -86,6 +86,34 @@ final class SubscriptionManagerTests: XCTestCase {
         }
     }
 
+    func test_allProCapabilities_areDeniedWhenNotSubscribed() async {
+        provider.mockEntitlements = []
+        await manager.refreshStatus()
+
+        for capability in ProCapability.allCases {
+            XCTAssertFalse(manager.allows(capability), "Expected \(capability) to be gated for free users")
+        }
+    }
+
+    func test_allProCapabilities_areAllowedWhenSubscribed() {
+        manager.subscriptionStatus = .subscribed(
+            productID: ProductID.monthly,
+            expiration: Date().addingTimeInterval(86400 * 30)
+        )
+
+        for capability in ProCapability.allCases {
+            XCTAssertTrue(manager.allows(capability), "Expected \(capability) to be allowed for Pro users")
+        }
+    }
+
+    func test_allProCapabilities_areDeniedWhenExpired() {
+        manager.subscriptionStatus = .expired(gracePeriodEnds: nil)
+
+        for capability in ProCapability.allCases {
+            XCTAssertFalse(manager.allows(capability), "Expected \(capability) to be gated for expired users")
+        }
+    }
+
     func test_subscribed_isPro_returnsTrue() {
         manager.subscriptionStatus = .subscribed(
             productID: ProductID.monthly,

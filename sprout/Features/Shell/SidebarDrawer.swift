@@ -16,8 +16,8 @@ struct SidebarDrawer: View {
                 headerConfig: headerConfig,
                 onNavigate: { route in
                     let item = SidebarIndexItem.items.first { $0.route == route }
-                    if let item, item.isPro {
-                        if subscriptionManager.isPro {
+                    if let capability = item?.requiredCapability {
+                        if subscriptionManager.allows(capability) {
                             navigationPath.append(route)
                         } else {
                             onShowPaywall()
@@ -67,7 +67,7 @@ struct SidebarIndexItem: Identifiable {
     let title: String
     let detail: String
     let route: SidebarRoute
-    let isPro: Bool
+    let requiredCapability: ProCapability?
 
     static var items: [SidebarIndexItem] {
         items(service: .current)
@@ -86,7 +86,7 @@ struct SidebarIndexItem: Identifiable {
                     fallback: "Display language and timezone"
                 ),
                 route: .language,
-                isPro: false
+                requiredCapability: nil
             ),
             SidebarIndexItem(
                 id: "account",
@@ -103,7 +103,7 @@ struct SidebarIndexItem: Identifiable {
                     zh: "登录并管理这台设备的连接"
                 ),
                 route: .account,
-                isPro: false
+                requiredCapability: nil
             ),
             SidebarIndexItem(
                 id: "cloudSync",
@@ -120,7 +120,7 @@ struct SidebarIndexItem: Identifiable {
                     zh: "登录后再安静地备份记录"
                 ),
                 route: .cloudSync,
-                isPro: false
+                requiredCapability: .cloudSync
             ),
             SidebarIndexItem(
                 id: "familyGroup",
@@ -133,7 +133,7 @@ struct SidebarIndexItem: Identifiable {
                     fallback: "Invite family to share records"
                 ),
                 route: .familyGroup,
-                isPro: true
+                requiredCapability: .familyGroup
             ),
         ]
     }

@@ -119,7 +119,7 @@ struct SidebarMenuView: View {
 
                         Spacer()
 
-                        if item.isPro {
+                        if item.requiredCapability != nil {
                             ProBadgeView(showLock: true)
                         }
                     }

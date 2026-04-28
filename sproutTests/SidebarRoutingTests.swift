@@ -63,14 +63,22 @@ struct SidebarRoutingTests {
         let account = SidebarIndexItem.items.first { $0.id == "account" }
         #expect(account != nil)
         #expect(account?.route == .account)
-        #expect(account?.isPro == false)
+        #expect(account?.requiredCapability == nil)
     }
 
-    @Test("cloud sync is available without pro gate in phase 2")
-    func testCloudSyncIsNotProGated() {
+    @Test("cloud sync declares the cloud sync capability gate")
+    func testCloudSyncCapabilityGate() {
         let cloudSync = SidebarIndexItem.items.first { $0.id == "cloudSync" }
         #expect(cloudSync != nil)
         #expect(cloudSync?.route == .cloudSync)
-        #expect(cloudSync?.isPro == false)
+        #expect(cloudSync?.requiredCapability == .cloudSync)
+    }
+
+    @Test("family group declares the family group capability gate")
+    func testFamilyGroupCapabilityGate() {
+        let familyGroup = SidebarIndexItem.items.first { $0.id == "familyGroup" }
+        #expect(familyGroup != nil)
+        #expect(familyGroup?.route == .familyGroup)
+        #expect(familyGroup?.requiredCapability == .familyGroup)
     }
 }
