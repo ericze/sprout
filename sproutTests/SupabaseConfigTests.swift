@@ -33,4 +33,16 @@ struct SupabaseConfigTests {
             )
         }
     }
+
+    @Test("SupabaseConfig rejects REST endpoint URLs")
+    func rejectsRestEndpointURL() {
+        #expect(throws: SupabaseConfigError.invalidURL("https://example.supabase.co/rest/v1/")) {
+            _ = try SupabaseConfig(
+                infoDictionary: [
+                    SupabaseConfig.urlKey: "https://example.supabase.co/rest/v1/",
+                    SupabaseConfig.anonKeyKey: "anon-key",
+                ]
+            )
+        }
+    }
 }

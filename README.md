@@ -32,6 +32,7 @@ Sprout. At your own pace.
 - 多宝宝：通过 `BabyRepository` 创建 / 切换 active baby，Home / Growth / Treasure 的记录与记忆查询按当前 babyID 隔离。
 - 侧边栏：宝宝资料、设置入口、订阅与状态信息承载。
 - 同步：本地优先的数据迁移、游标、资产同步和删除墓碑。
+- Cloud Sync：`SupabaseService` 已接入 Supabase Auth、Postgres RPC / 增量查询、Storage 上传下载删除；同步仍保持 local-first，失败不会删除本地数据。
 - 国际化：字符串目录、语言状态、格式化服务和文案模板提供器。
 
 ## 目录结构
@@ -67,7 +68,11 @@ docs/                  PRD、规格、验收、发布与实现计划
 cp Config/Supabase.xcconfig.example Config/Supabase.local.xcconfig
 ```
 
-4. 构建并运行到 iOS 17.0+ 模拟器或真机。
+   `SUPABASE_URL` 必须填写项目根地址，例如 `https://<project-ref>.supabase.co`，不要填写 `/rest/v1/` endpoint。
+
+4. 在 Supabase SQL Editor 执行 `supabase/migrations/202604270001_account_cloud_sync.sql`，创建账号同步所需的表、RPC、RLS policy 和私有 Storage bucket。
+
+5. 构建并运行到 iOS 17.0+ 模拟器或真机。
 
 核心记录流程应在没有网络、没有 AI 服务、没有云同步成功的情况下保持可用。
 
@@ -88,7 +93,18 @@ xcodebuild test \
 - 成长数据、图表交互、里程碑和格式化。
 - 珍藏时间线、周信、图片路径和仓储。
 - 同步状态、游标、迁移、启动容器和订阅状态。
+- Supabase 配置校验、Auth 管理、真实服务 smoke 测试门控。
 - 国际化语言状态、模板和本地化格式。
+
+真实 Supabase smoke 默认跳过外部连接；只有显式设置以下环境变量时才会登录真实后端：
+
+```bash
+SPROUT_REAL_SUPABASE_SMOKE=1
+SPROUT_SUPABASE_URL=https://<project-ref>.supabase.co
+SPROUT_SUPABASE_ANON_KEY=<anon-key>
+SPROUT_SUPABASE_TEST_EMAIL=<test-user-email>
+SPROUT_SUPABASE_TEST_PASSWORD=<test-user-password>
+```
 
 ## 开发约束
 
@@ -101,6 +117,8 @@ xcodebuild test \
 - Paywall 主承诺统一来自 `PaywallContent.promotedCapabilities`；未通过发布验收的能力不得出现在可购买权益列表中。
 - Paywall 的 Terms / Privacy 链接维护在 `docs/legal` 对应文档，禁止使用 `example.com` 占位链接。
 - 多宝宝数据读取必须以 active baby 为默认边界；新增记录、成长记录、珍藏记忆时应写入当前 active babyID。若要扩展到 `WeeklyLetter` schema，必须先设计 staged migration，避免重复 version checksum。
+- Cloud Sync 服务层统一通过 `SupabaseService` 访问真实后端；页面和 store 不直接拼 Supabase REST URL，不直接持有 anon key，不把 `/rest/v1/` 当项目 URL 使用。
+- `Config/Supabase.local.xcconfig` 只保存本机真实 URL / anon key，必须保持 git ignored，不能提交。
 - 公共类和公开函数保持清晰命名，复杂业务决策才添加注释。
 - 不硬编码业务页面颜色，统一走语义化设计 token。
 - 不使用纯黑文本、高饱和提示色或刺眼错误红。

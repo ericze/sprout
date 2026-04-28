@@ -727,6 +727,7 @@ enum SyncPhase {
 ### DEV-E1：CloudSyncStatusStore 正式化
 **目标**
 - 将现有状态页接到真实同步引擎
+- 进度：已通过 `CloudSyncStatusStore.syncIfEligible(authState:reason:)` 接入 `SyncEngine.performFullSync`；未登录、绑定阻塞等非 authenticated 状态不会触发真实同步
 
 **要求**
 - phase
@@ -739,6 +740,9 @@ enum SyncPhase {
 ### DEV-E2：Sync Engine
 **目标**
 - 完成 pull / push 基础链路
+- 进度：`SupabaseService` 已从 stub 切到真实 Supabase Swift SDK，覆盖 Auth session restore / sign in / sign up / sign out、Postgres RPC upsert / soft delete / incremental fetch、Storage upload / download / delete；默认同步仍通过本地 `SyncEngine` 统一处理游标、dirty row 跳过、资产下载和删除墓碑
+- 后端迁移：新增 `supabase/migrations/202604270001_account_cloud_sync.sql`，包含 `profiles`、`baby_profiles`、`record_items`、`memory_entries`、`server_now`、版本化 upsert / soft delete RPC、RLS policy 与私有 Storage bucket
+- 配置防护：`SupabaseConfig` 会拒绝 `/rest/v1/` endpoint URL，必须使用 Supabase project root URL
 
 **要求**
 - 支持增量同步
@@ -751,6 +755,7 @@ enum SyncPhase {
 ### DEV-E3：错误恢复
 **目标**
 - 网络失败 / 鉴权失败 / 冲突失败有明确提示
+- 进度：同步失败会进入 `SyncUIPhase.error` 并由 Cloud Sync 页面显示可读错误；push/pull 失败不会清空本地 SwiftData 数据，dirty local row 在 pull 时会跳过，版本冲突会刷新远端版本后重试一次
 
 **要求**
 - 用户可点击 retry
@@ -759,6 +764,7 @@ enum SyncPhase {
 ### DEV-E4：两设备校验工具
 **目标**
 - 为 QA 提供可观察的同步验证方式
+- 进度：新增 gated `RealSupabaseServiceSmokeTests`，默认不依赖真实账号；设置 `SPROUT_REAL_SUPABASE_SMOKE=1` 和测试账号环境变量后可验证真实 Auth 登录 / 退出链路
 
 **要求**
 - 增加 debug 标记或 sync log 面板（Debug only）
@@ -766,32 +772,37 @@ enum SyncPhase {
 ## E.7 QA 验收项
 
 ### QA-E1 基础同步
-- [ ] 登录后自动开始同步
-- [ ] A 设备新增记录，B 设备可拉到
-- [ ] B 设备新增记录，A 设备可拉到
-- [ ] 手动 sync 可成功
+- [x] 登录后自动开始同步（`AuthManagerTests` 覆盖登录后触发 sync hook）
+- [ ] A 设备新增记录，B 设备可拉到（需真实双设备 QA）
+- [ ] B 设备新增记录，A 设备可拉到（需真实双设备 QA）
+- [x] 手动 sync 可成功（`CloudSyncStatusStoreTests/manualSyncPushesPendingChanges`）
 
 ### QA-E2 同步状态
-- [ ] 同步中显示 syncing
-- [ ] 完成后显示 last sync
-- [ ] 待同步计数准确
-- [ ] 删除待同步计数准确
+- [x] 同步中显示 syncing（`CloudSyncStatusStore` 接 `SyncUIPhase.pushing`）
+- [x] 完成后显示 last sync（`SyncEngineTests/fullSyncPullsRowsAndSavesCursor` 间接覆盖 completion state）
+- [x] 待同步计数准确（`SyncEngineTests` 覆盖 pending upsert 流程）
+- [x] 删除待同步计数准确（`SyncEngineTests/pushPipelineDeletesInFixedOrder`）
 
 ### QA-E3 失败恢复
 - [ ] 断网时同步失败有提示
 - [ ] 恢复网络后可重试成功
 - [ ] 鉴权失效时有提示并引导登录
-- [ ] 同步失败不影响本地新增记录
+- [x] 同步失败不影响本地新增记录（`SyncEngineTests/partialFailurePersistsEarlierSuccess`、dirty row pull skip tests）
 
 ### QA-E4 退出登录
-- [ ] 退出登录后同步停止
-- [ ] 本地数据保留
-- [ ] 重新登录后可继续同步
+- [x] 退出登录后同步停止（Cloud Sync 手动入口仅 authenticated 时触发；`AuthManagerTests/signOutDoesNotClearBinding` 覆盖退出状态）
+- [x] 本地数据保留（Auth sign out 只清 current user / auth state，不删除 SwiftData）
+- [ ] 重新登录后可继续同步（需真实账号回归）
 
 ### QA-E5 本地 schema 迁移
 - [ ] 启动容器创建不触发 `Duplicate version checksums across stages detected`
 - [ ] 当前默认 schema 可插入并读取所有现行模型，包括 Growth milestones
 - [ ] migration plan 的 schema 模型集合不跨版本重复
+
+### QA-E6 真实后端 Smoke
+- [x] 默认测试不需要真实凭据（`RealSupabaseServiceSmokeTests` 未设置环境变量时直接通过）
+- [ ] 设置真实测试账号后 Auth smoke 可登录并退出（需 QA 提供 `SPROUT_SUPABASE_TEST_EMAIL` / `SPROUT_SUPABASE_TEST_PASSWORD`）
+- [ ] SQL Editor 已执行 `supabase/migrations/202604270001_account_cloud_sync.sql` 且表 / bucket 存在
 
 ---
 

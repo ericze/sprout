@@ -16,9 +16,16 @@ struct SupabaseConfig: Equatable, Sendable {
         guard let url = URL(string: urlString), let scheme = url.scheme, let host = url.host, !scheme.isEmpty, !host.isEmpty else {
             throw SupabaseConfigError.invalidURL(urlString)
         }
+        guard !Self.isRestEndpointURL(url) else {
+            throw SupabaseConfigError.invalidURL(urlString)
+        }
 
         self.url = url
         self.anonKey = try Self.requiredString(for: Self.anonKeyKey, in: infoDictionary)
+    }
+
+    private static func isRestEndpointURL(_ url: URL) -> Bool {
+        url.pathComponents.map { $0.lowercased() } == ["/", "rest", "v1"]
     }
 
     private static func requiredString(for key: String, in infoDictionary: [String: Any]) throws -> String {

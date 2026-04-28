@@ -22,7 +22,7 @@ struct SupabaseSession: Equatable, Sendable {
     let user: SupabaseAuthUser
 }
 
-struct BabyProfileDTO: Codable, Equatable, Sendable {
+struct BabyProfileDTO: nonisolated Codable, Equatable, Sendable {
     let id: UUID
     let userID: UUID
     let name: String
@@ -52,7 +52,7 @@ struct BabyProfileDTO: Codable, Equatable, Sendable {
     }
 }
 
-struct RecordItemDTO: Codable, Equatable, Sendable {
+struct RecordItemDTO: nonisolated Codable, Equatable, Sendable {
     let id: UUID
     let userID: UUID
     let babyID: UUID
@@ -92,7 +92,7 @@ struct RecordItemDTO: Codable, Equatable, Sendable {
     }
 }
 
-struct MemoryEntryDTO: Codable, Equatable, Sendable {
+struct MemoryEntryDTO: nonisolated Codable, Equatable, Sendable {
     let id: UUID
     let userID: UUID
     let babyID: UUID
