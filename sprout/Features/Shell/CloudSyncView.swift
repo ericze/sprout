@@ -23,7 +23,16 @@ final class CloudSyncStatusStore {
         refreshFromEngine()
     }
 
-    func syncIfEligible(authState: AuthState, reason: SyncReason) async {
+    func syncIfEligible(
+        authState: AuthState,
+        reason: SyncReason,
+        isCloudSyncAllowed: Bool = true
+    ) async {
+        guard isCloudSyncAllowed else {
+            refreshFromEngine()
+            return
+        }
+
         guard case .authenticated = authState else {
             refreshFromEngine()
             return
@@ -98,6 +107,7 @@ private struct SyncStatusError: LocalizedError {
 struct CloudSyncView: View {
     @Environment(AuthManager.self) private var authManager
     @Environment(CloudSyncStatusStore.self) private var syncStatusStore
+    @Environment(SubscriptionManager.self) private var subscriptionManager
     let onOpenAccount: () -> Void
 
     var body: some View {
@@ -265,7 +275,11 @@ struct CloudSyncView: View {
 
     private func triggerManualSync() {
         Task {
-            await syncStatusStore.syncIfEligible(authState: authManager.authState, reason: .manual)
+            await syncStatusStore.syncIfEligible(
+                authState: authManager.authState,
+                reason: .manual,
+                isCloudSyncAllowed: subscriptionManager.allows(.cloudSync)
+            )
         }
     }
 

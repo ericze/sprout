@@ -7,10 +7,11 @@ import Observation
 final class SubscriptionManager {
     private let provider: ProductProvider
     private var cache: SubscriptionCache
+    private let nowProvider: () -> Date
     private var transactionListenerTask: Task<Void, Never>?
 
     var subscriptionStatus: SubscriptionStatus = .loading
-    var products: [Product] = []
+    var products: [StoreProduct] = []
     var isLoading: Bool = false
 
     var isPro: Bool {
@@ -19,10 +20,12 @@ final class SubscriptionManager {
 
     init(
         provider: ProductProvider? = nil,
-        cache: SubscriptionCache? = nil
+        cache: SubscriptionCache? = nil,
+        nowProvider: @escaping () -> Date = Date.init
     ) {
         self.provider = provider ?? StoreKitProvider()
         self.cache = cache ?? UserDefaultsSubscriptionCache()
+        self.nowProvider = nowProvider
     }
 
     func isEntitled(_ entitlement: Entitlement) -> Bool {
@@ -31,6 +34,10 @@ final class SubscriptionManager {
 
     func allows(_ capability: ProCapability) -> Bool {
         isPro
+    }
+
+    func canCreateAdditionalBaby(existingBabyCount: Int) -> Bool {
+        existingBabyCount == 0 || allows(.multiBaby)
     }
 
     func loadProducts() async {
@@ -43,12 +50,15 @@ final class SubscriptionManager {
         isLoading = false
     }
 
-    func purchase(_ product: Product) async throws -> Transaction? {
-        guard let transaction = try await provider.purchase(product) else {
-            return nil
+    func purchase(_ product: StoreProduct) async throws -> StorePurchaseResult {
+        let result = try await provider.purchase(productID: product.id)
+        switch result {
+        case .purchased(let entitlement):
+            apply(entitlements: [entitlement])
+        case .cancelled, .pending:
+            break
         }
-        await refreshStatus()
-        return transaction
+        return result
     }
 
     func restorePurchases() async throws {
@@ -70,23 +80,7 @@ final class SubscriptionManager {
     func refreshStatus() async {
         do {
             let transactions = try await provider.fetchCurrentEntitlements()
-            if let active = transactions.first(where: { $0.expirationDate?.compare(.now) == .orderedDescending }) {
-                subscriptionStatus = .subscribed(
-                    productID: active.productID,
-                    expiration: active.expirationDate ?? .distantFuture
-                )
-                updateCache()
-                return
-            }
-
-            if let expired = transactions.first(where: { $0.expirationDate != nil }) {
-                subscriptionStatus = .expired(gracePeriodEnds: expired.expirationDate)
-                updateCache()
-                return
-            }
-
-            subscriptionStatus = .notSubscribed
-            updateCache()
+            apply(entitlements: transactions)
         } catch {
             if cache.cachedIsActive {
                 subscriptionStatus = .subscribed(
@@ -97,6 +91,31 @@ final class SubscriptionManager {
                 subscriptionStatus = .error(error.localizedDescription)
             }
         }
+    }
+
+    private func apply(entitlements: [StoreEntitlement]) {
+        let now = nowProvider()
+
+        if let active = entitlements.first(where: { entitlement in
+            guard let expirationDate = entitlement.expirationDate else { return true }
+            return expirationDate > now
+        }) {
+            subscriptionStatus = .subscribed(
+                productID: active.productID,
+                expiration: active.expirationDate ?? .distantFuture
+            )
+            updateCache()
+            return
+        }
+
+        if let expired = entitlements.first(where: { $0.expirationDate != nil }) {
+            subscriptionStatus = .expired(gracePeriodEnds: expired.expirationDate)
+            updateCache()
+            return
+        }
+
+        subscriptionStatus = .notSubscribed
+        updateCache()
     }
 
     private func updateCache() {

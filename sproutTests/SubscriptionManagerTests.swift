@@ -10,7 +10,11 @@ final class SubscriptionManagerTests: XCTestCase {
     override func setUp() {
         provider = MockProductProvider()
         cache = MockSubscriptionCache()
-        manager = SubscriptionManager(provider: provider, cache: cache)
+        manager = SubscriptionManager(
+            provider: provider,
+            cache: cache,
+            nowProvider: { Date(timeIntervalSince1970: 1_711_000_000) }
+        )
     }
 
     func test_initialState_isLoading() {
@@ -42,6 +46,66 @@ final class SubscriptionManagerTests: XCTestCase {
         provider.mockEntitlements = []
         await manager.refreshStatus()
         XCTAssertEqual(manager.subscriptionStatus, .notSubscribed)
+    }
+
+    func test_purchaseMonthlySandboxResult_unlocksProAndCachesEntitlement() async throws {
+        let expiration = Date(timeIntervalSince1970: 1_711_000_000 + 2_592_000)
+        let monthly = StoreProduct(id: ProductID.monthly, displayPrice: "$4.99", price: 4.99)
+        provider.mockProducts = [monthly]
+        provider.purchaseResult = .purchased(
+            StoreEntitlement(productID: ProductID.monthly, expirationDate: expiration)
+        )
+
+        let result = try await manager.purchase(monthly)
+
+        XCTAssertEqual(result, .purchased(StoreEntitlement(productID: ProductID.monthly, expirationDate: expiration)))
+        XCTAssertEqual(provider.purchasedProductIDs, [ProductID.monthly])
+        XCTAssertEqual(manager.subscriptionStatus, .subscribed(productID: ProductID.monthly, expiration: expiration))
+        XCTAssertTrue(manager.isPro)
+        XCTAssertEqual(cache.cachedProductID, ProductID.monthly)
+        XCTAssertEqual(cache.cachedExpiration, expiration)
+        XCTAssertTrue(cache.cachedIsActive)
+    }
+
+    func test_cancelledSandboxPurchase_doesNotUnlockOrCachePro() async throws {
+        let monthly = StoreProduct(id: ProductID.monthly, displayPrice: "$4.99", price: 4.99)
+        provider.mockProducts = [monthly]
+        provider.purchaseResult = .cancelled
+
+        let result = try await manager.purchase(monthly)
+
+        XCTAssertEqual(result, .cancelled)
+        XCTAssertFalse(manager.isPro)
+        XCTAssertNil(cache.cachedProductID)
+        XCTAssertFalse(cache.cachedIsActive)
+    }
+
+    func test_restoreSandboxPurchase_unlocksProFromCurrentEntitlements() async throws {
+        let expiration = Date(timeIntervalSince1970: 1_711_000_000 + 31_536_000)
+        provider.mockEntitlements = [
+            StoreEntitlement(productID: ProductID.yearly, expirationDate: expiration)
+        ]
+
+        try await manager.restorePurchases()
+
+        XCTAssertTrue(provider.didRestore)
+        XCTAssertEqual(manager.subscriptionStatus, .subscribed(productID: ProductID.yearly, expiration: expiration))
+        XCTAssertTrue(manager.isPro)
+    }
+
+    func test_expiredSandboxEntitlement_revokesAllProCapabilities() async {
+        let expiration = Date(timeIntervalSince1970: 1_711_000_000 - 60)
+        provider.mockEntitlements = [
+            StoreEntitlement(productID: ProductID.monthly, expirationDate: expiration)
+        ]
+
+        await manager.refreshStatus()
+
+        XCTAssertEqual(manager.subscriptionStatus, .expired(gracePeriodEnds: expiration))
+        XCTAssertFalse(manager.isPro)
+        XCTAssertFalse(manager.allows(.multiBaby))
+        XCTAssertFalse(manager.allows(.cloudSync))
+        XCTAssertFalse(manager.allows(.familyGroup))
     }
 
     func test_storeKitError_fallsBackToCache() async {

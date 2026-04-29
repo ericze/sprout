@@ -6,11 +6,17 @@ import UIKit
 @MainActor
 final class BabyRepository {
     private let modelContext: ModelContext
+    private let canCreateAdditionalBaby: (Int) -> Bool
     private let logger = Logger(subsystem: "sprout", category: "BabyRepository")
     weak var activeBabyState: ActiveBabyState?
 
-    init(modelContext: ModelContext, activeBabyState: ActiveBabyState? = nil) {
+    init(
+        modelContext: ModelContext,
+        activeBabyState: ActiveBabyState? = nil,
+        canCreateAdditionalBaby: @escaping (Int) -> Bool = { _ in true }
+    ) {
         self.modelContext = modelContext
+        self.canCreateAdditionalBaby = canCreateAdditionalBaby
         self.activeBabyState = activeBabyState
     }
 
@@ -49,6 +55,12 @@ final class BabyRepository {
 
     func createBaby(name: String, birthDate: Date, gender: BabyProfile.Gender? = nil) -> BabyProfile? {
         do {
+            let babies = try fetchBabies()
+            guard canCreateAdditionalBaby(babies.count) else {
+                recordFailure(operation: "Create baby", reason: "Multi-baby entitlement is not active")
+                return nil
+            }
+
             let normalizedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
             let baby = BabyProfile(
                 id: UUID(),
@@ -60,7 +72,6 @@ final class BabyRepository {
                 isActive: true
             )
 
-            let babies = try fetchBabies()
             for existingBaby in babies where existingBaby.isActive {
                 existingBaby.isActive = false
                 markPendingUpsert(existingBaby)

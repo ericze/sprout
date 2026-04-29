@@ -16,14 +16,14 @@ struct SidebarDrawer: View {
                 headerConfig: headerConfig,
                 onNavigate: { route in
                     let item = SidebarIndexItem.items.first { $0.route == route }
-                    if let capability = item?.requiredCapability {
-                        if subscriptionManager.allows(capability) {
-                            navigationPath.append(route)
-                        } else {
-                            onShowPaywall()
-                        }
-                    } else {
+                    switch SidebarAccessPolicy.decision(
+                        for: item,
+                        subscriptionStatus: subscriptionManager.subscriptionStatus
+                    ) {
+                    case .navigate(let route):
                         navigationPath.append(route)
+                    case .showPaywall:
+                        onShowPaywall()
                     }
                 }
             )
@@ -51,6 +51,23 @@ struct SidebarDrawer: View {
             }
         }
         .background(AppTheme.Colors.background)
+    }
+}
+
+enum SidebarAccessDecision: Equatable {
+    case navigate(SidebarRoute)
+    case showPaywall
+}
+
+enum SidebarAccessPolicy {
+    static func decision(
+        for item: SidebarIndexItem?,
+        subscriptionStatus: SubscriptionStatus
+    ) -> SidebarAccessDecision {
+        guard let item else { return .showPaywall }
+        guard item.requiredCapability != nil else { return .navigate(item.route) }
+        guard subscriptionStatus.isActive else { return .showPaywall }
+        return .navigate(item.route)
     }
 }
 

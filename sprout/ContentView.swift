@@ -50,7 +50,13 @@ struct ContentView: View {
             subscriptionManager.startListening()
             await subscriptionManager.refreshStatus()
 
-            let repo = BabyRepository(modelContext: modelContext, activeBabyState: activeBabyState)
+            let repo = BabyRepository(
+                modelContext: modelContext,
+                activeBabyState: activeBabyState,
+                canCreateAdditionalBaby: { existingBabyCount in
+                    subscriptionManager.canCreateAdditionalBaby(existingBabyCount: existingBabyCount)
+                }
+            )
             repo.createDefaultIfNeeded()
 
             if authManager == nil {
@@ -100,7 +106,8 @@ struct ContentView: View {
                         Task {
                             await cloudSyncStatusStore.syncIfEligible(
                                 authState: authManager.authState,
-                                reason: reason
+                                reason: reason,
+                                isCloudSyncAllowed: subscriptionManager.allows(.cloudSync)
                             )
                         }
                     }

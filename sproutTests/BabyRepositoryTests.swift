@@ -162,6 +162,44 @@ struct BabyRepositoryTests {
         #expect(state.headerConfig.babyID == secondBaby.id)
     }
 
+    @Test("free entitlement keeps the first baby but blocks creating a second baby")
+    func freeEntitlementBlocksSecondBabyWithoutDeletingExistingData() async throws {
+        let env = try makeTestEnvironment(now: .now)
+        let repo = BabyRepository(
+            modelContext: env.modelContext,
+            canCreateAdditionalBaby: { existingBabyCount in existingBabyCount == 0 }
+        )
+        #expect(repo.createDefaultIfNeeded() == true)
+        let firstBaby = try #require(repo.activeBaby)
+
+        let secondBaby = repo.createBaby(name: "小栗子", birthDate: env.now.value)
+
+        let babies = try repo.fetchBabies()
+        #expect(secondBaby == nil)
+        #expect(babies.count == 1)
+        #expect(babies.first?.id == firstBaby.id)
+        #expect(babies.first?.name == firstBaby.name)
+    }
+
+    @Test("expired entitlement preserves existing babies but blocks adding another")
+    func expiredEntitlementBlocksAdditionalBabyWithoutDeletingExistingData() async throws {
+        let env = try makeTestEnvironment(now: .now)
+        let repo = env.makeBabyRepository()
+        #expect(repo.createDefaultIfNeeded() == true)
+        let secondBaby = try #require(repo.createBaby(name: "小栗子", birthDate: env.now.value))
+
+        let expiredRepo = BabyRepository(
+            modelContext: env.modelContext,
+            canCreateAdditionalBaby: { _ in false }
+        )
+        let thirdBaby = expiredRepo.createBaby(name: "小松果", birthDate: env.now.value)
+
+        let babies = try expiredRepo.fetchBabies()
+        #expect(thirdBaby == nil)
+        #expect(babies.count == 2)
+        #expect(babies.contains { $0.id == secondBaby.id })
+    }
+
     @Test("activateBaby switches the active baby and syncs header state")
     func testActivateBabySwitchesActiveBaby() async throws {
         let env = try makeTestEnvironment(now: .now)

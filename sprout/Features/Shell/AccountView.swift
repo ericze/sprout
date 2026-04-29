@@ -3,6 +3,7 @@ import SwiftUI
 struct AccountView: View {
     @Environment(AuthManager.self) private var authManager
     @Environment(CloudSyncStatusStore.self) private var syncStatusStore
+    @Environment(SubscriptionManager.self) private var subscriptionManager
 
     @State private var email = ""
     @State private var password = ""
@@ -396,7 +397,11 @@ struct AccountView: View {
 
     private func performManualSync() {
         Task {
-            await syncStatusStore.syncIfEligible(authState: authManager.authState, reason: .manual)
+            await syncStatusStore.syncIfEligible(
+                authState: authManager.authState,
+                reason: .manual,
+                isCloudSyncAllowed: subscriptionManager.allows(.cloudSync)
+            )
         }
     }
 

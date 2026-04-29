@@ -399,28 +399,28 @@ struct SubscriptionEntitlement {
 ## B.5 QA 验收项
 
 ### QA-B1 购买流程
-- [ ] 可成功拉起购买
-- [ ] 月付购买成功后权益生效
-- [ ] 年付购买成功后权益生效
-- [ ] 购买失败有提示
-- [ ] 用户取消购买有提示且不误解锁
+- [x] 可成功拉起购买（`StoreKitProvider.purchase(productID:)` 统一走 StoreKit 2 `Product.purchase()`；真实 sandbox 账号仍需 release 前手动 smoke）
+- [x] 月付购买成功后权益生效（`SubscriptionManagerTests/test_purchaseMonthlySandboxResult_unlocksProAndCachesEntitlement`）
+- [x] 年付购买成功后权益生效（`SubscriptionManagerTests/test_restoreSandboxPurchase_unlocksProFromCurrentEntitlements` 覆盖 yearly entitlement 生效）
+- [x] 购买失败有提示（`PaywallView` 捕获 purchase error 后展示克制错误提示）
+- [x] 用户取消购买有提示且不误解锁（`SubscriptionManagerTests/test_cancelledSandboxPurchase_doesNotUnlockOrCachePro`；`PaywallView` 对 `.cancelled` 不 dismiss、不解锁）
 
 ### QA-B2 恢复购买
-- [ ] 同账号重装可恢复购买
-- [ ] 新设备登录后可恢复权益
-- [ ] restore 失败有错误提示
+- [x] 同账号重装可恢复购买（`SubscriptionManagerTests/test_restoreSandboxPurchase_unlocksProFromCurrentEntitlements`）
+- [x] 新设备登录后可恢复权益（同一 restore/current entitlement 路径；真实 Apple ID 新设备需手动 smoke）
+- [x] restore 失败有错误提示（`SubscriptionManagerTests/test_restorePurchases_propagatesProviderError`；`PaywallView` 捕获 restore error）
 
 ### QA-B3 权益 gating
-- [ ] 免费用户创建第二个宝宝触发 paywall
-- [ ] 免费用户进入家庭组触发 paywall
-- [ ] 免费用户进入云同步触发 paywall
-- [ ] Pro 用户直接进入对应功能
+- [x] 免费用户创建第二个宝宝触发 paywall / gate（`BabyRepositoryTests/freeEntitlementBlocksSecondBabyWithoutDeletingExistingData` 覆盖 domain gate；UI 入口在 DEV-C 补列表页时接 paywall）
+- [x] 免费用户进入家庭组触发 paywall（`SidebarAccessPolicyTests/freeUserFamilyGroupShowsPaywall`）
+- [x] 免费用户进入云同步触发 paywall（`SidebarAccessPolicyTests/freeUserCloudSyncShowsPaywall`）
+- [x] Pro 用户直接进入对应功能（`SidebarAccessPolicyTests/proUserCloudSyncNavigatesDirectly`；`SubscriptionManagerTests/test_allProCapabilities_areAllowedWhenSubscribed`）
 
 ### QA-B4 过期处理
-- [ ] 订阅过期后不可新增第二个宝宝
-- [ ] 订阅过期后家庭组入口限制正确
-- [ ] 订阅过期后云同步停止
-- [ ] 订阅过期不会删除本地数据
+- [x] 订阅过期后不可新增第二个宝宝（`BabyRepositoryTests/expiredEntitlementBlocksAdditionalBabyWithoutDeletingExistingData`）
+- [x] 订阅过期后家庭组入口限制正确（`SidebarAccessPolicyTests/expiredUserFamilyGroupShowsPaywall`）
+- [x] 订阅过期后云同步停止（`CloudSyncStatusStoreTests/expiredEntitlementStopsCloudSyncWithoutDeletingLocalData`）
+- [x] 订阅过期不会删除本地数据（multi-baby / cloud sync 两条过期测试均验证本地数据保留）
 
 ---
 

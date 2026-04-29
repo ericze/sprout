@@ -1,4 +1,3 @@
-import StoreKit
 import SwiftUI
 
 struct PaywallView: View {
@@ -9,7 +8,7 @@ struct PaywallView: View {
     @State private var isPurchasing = false
     @State private var errorMessage: String?
 
-    private var selectedProduct: Product? {
+    private var selectedProduct: StoreProduct? {
         guard PaywallContent.isPurchaseEnabled else { return nil }
         guard !subscriptionManager.products.isEmpty else { return nil }
         let sorted = subscriptionManager.products.sorted { $0.price < $1.price }
@@ -212,8 +211,23 @@ struct PaywallView: View {
         isPurchasing = true
         Task {
             do {
-                _ = try await subscriptionManager.purchase(product)
-                dismiss()
+                let result = try await subscriptionManager.purchase(product)
+                switch result {
+                case .purchased:
+                    dismiss()
+                case .cancelled:
+                    errorMessage = L10n.text(
+                        "paywall.purchase.cancelled",
+                        en: "Purchase was cancelled. Your plan has not changed.",
+                        zh: "购买已取消，当前方案没有变化。"
+                    )
+                case .pending:
+                    errorMessage = L10n.text(
+                        "paywall.purchase.pending",
+                        en: "Purchase is pending. Pro will unlock after Apple confirms it.",
+                        zh: "购买正在等待确认。Apple 确认后会自动解锁 Pro。"
+                    )
+                }
             } catch {
                 errorMessage = L10n.text(
                     "paywall.purchase.failed",

@@ -38,4 +38,34 @@ struct CloudSyncStatusStoreTests {
         #expect(store.pendingChangeCount == 0)
         #expect(store.lastSyncAt == environment.now.value)
     }
+
+    @Test("expired cloud sync entitlement keeps local changes pending and does not contact Supabase")
+    func expiredEntitlementStopsCloudSyncWithoutDeletingLocalData() async throws {
+        let environment = try makeTestEnvironment(now: Date(timeIntervalSince1970: 1_711_000_000))
+        let userID = UUID()
+        let baby = BabyProfile(name: "Sprout", birthDate: environment.now.value)
+        environment.modelContext.insert(baby)
+        try environment.modelContext.save()
+
+        let mock = MockSupabaseService()
+        let engine = SyncEngine(
+            modelContext: environment.modelContext,
+            supabaseService: mock,
+            currentUserIDProvider: { userID },
+            nowProvider: { environment.now.value }
+        )
+        let store = CloudSyncStatusStore()
+        store.configure(syncEngine: engine)
+
+        await store.syncIfEligible(
+            authState: .authenticated(userID: userID),
+            reason: .manual,
+            isCloudSyncAllowed: false
+        )
+
+        #expect(await mock.readOperations().isEmpty)
+        #expect(store.phase == .idle)
+        #expect(store.pendingChangeCount == 1)
+        #expect(try environment.modelContext.fetch(FetchDescriptor<BabyProfile>()).map(\.id) == [baby.id])
+    }
 }
