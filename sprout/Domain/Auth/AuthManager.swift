@@ -3,11 +3,25 @@ import Observation
 
 enum AuthManagerError: LocalizedError, Equatable {
     case accountBindingConflict(linkedUserID: UUID, incomingUserID: UUID)
+    case invalidCredentials
+    case noPendingAccountSwitch
 
     var errorDescription: String? {
         switch self {
         case let .accountBindingConflict(linkedUserID, incomingUserID):
             return "Account binding conflict. Linked user: \(linkedUserID.uuidString), incoming user: \(incomingUserID.uuidString)."
+        case .invalidCredentials:
+            return L10n.text(
+                "account.error.invalid_credentials",
+                en: "That email and password did not match. Please check them and try again.",
+                zh: "邮箱和密码没有匹配成功。请检查后再试一次。"
+            )
+        case .noPendingAccountSwitch:
+            return L10n.text(
+                "account.error.no_pending_switch",
+                en: "There is no pending account switch to confirm.",
+                zh: "当前没有需要确认的账号切换。"
+            )
         }
     }
 }
@@ -80,10 +94,32 @@ final class AuthManager {
         }
     }
 
+    func resetPassword(email: String) async throws {
+        do {
+            try await supabaseService.resetPassword(email: email)
+        } catch {
+            let mappedError = Self.mapAuthError(error)
+            authState = .error(mappedError.localizedDescription)
+            throw mappedError
+        }
+    }
+
     func signOut() async throws {
         try await supabaseService.signOut()
         currentUser = nil
         authState = .unauthenticated
+    }
+
+    func switchBindingToCurrentUser() async throws {
+        guard case .blockedByAccountBinding = authState, let currentUser else {
+            throw AuthManagerError.noPendingAccountSwitch
+        }
+
+        linkedUserID = currentUser.id
+        defaults.set(currentUser.id.uuidString.lowercased(), forKey: linkedUserIDStorageKey)
+        runLocalBootstrapper()
+        authState = .authenticated(userID: currentUser.id)
+        triggerSyncHook(.authentication)
     }
 
     private func authenticate(operation: () async throws -> SupabaseSession) async throws {
@@ -93,10 +129,15 @@ final class AuthManager {
             let session = try await operation()
             try await finalizeAuthenticatedSession(session, syncReason: .authentication)
         } catch let authError as AuthManagerError {
+            if case .accountBindingConflict = authError {
+                throw authError
+            }
+            authState = .error(authError.localizedDescription)
             throw authError
         } catch {
-            authState = .error(error.localizedDescription)
-            throw error
+            let mappedError = Self.mapAuthError(error)
+            authState = .error(mappedError.localizedDescription)
+            throw mappedError
         }
     }
 
@@ -107,7 +148,6 @@ final class AuthManager {
             let linkedID = linkedUserID ?? incomingUserID
             currentUser = session.user
             authState = .blockedByAccountBinding
-            try? await supabaseService.signOut()
             throw AuthManagerError.accountBindingConflict(linkedUserID: linkedID, incomingUserID: incomingUserID)
         }
 
@@ -137,5 +177,21 @@ final class AuthManager {
             return nil
         }
         return parsed
+    }
+
+    private static func mapAuthError(_ error: Error) -> Error {
+        if let authError = error as? AuthManagerError {
+            return authError
+        }
+
+        let description = error.localizedDescription.lowercased()
+        if description.contains("invalid login credentials")
+            || description.contains("invalid credentials")
+            || description.contains("invalid email or password")
+        {
+            return AuthManagerError.invalidCredentials
+        }
+
+        return error
     }
 }

@@ -25,6 +25,7 @@ protocol SupabaseServicing: Sendable {
     func restoreSession() async throws -> SupabaseSession?
     func signIn(email: String, password: String) async throws -> SupabaseSession
     func signUp(email: String, password: String) async throws -> SupabaseSession
+    func resetPassword(email: String) async throws
     func signOut() async throws
     func fetchServerNow() async throws -> Date
     func upsertBabyProfile(_ profile: BabyProfileDTO, expectedVersion: Int64?) async throws -> BabyProfileDTO
@@ -86,6 +87,14 @@ actor SupabaseService: SupabaseServicing {
         return makeSession(session)
         #else
         throw unavailable("signUp")
+        #endif
+    }
+
+    func resetPassword(email: String) async throws {
+        #if canImport(Supabase)
+        try await client.auth.resetPasswordForEmail(email)
+        #else
+        throw unavailable("resetPassword")
         #endif
     }
 

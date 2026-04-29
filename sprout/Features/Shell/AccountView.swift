@@ -9,6 +9,7 @@ struct AccountView: View {
     @State private var isWorking = false
     @State private var errorMessage: String?
     @State private var showingSignOutConfirmation = false
+    @State private var showingAccountSwitchConfirmation = false
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -37,6 +38,17 @@ struct AccountView: View {
             }
         } message: {
             Text(L10n.text("account.sign_out.confirmation.message", en: "Local records stay on this device. Cloud backup will pause until you sign in again.", zh: "本地记录会继续保留在这台设备上，云端备份会暂停，直到你再次登录。"))
+        }
+        .alert(
+            L10n.text("account.switch.confirmation.title", en: "Switch this device to the new account?", zh: "要把这台设备切换到新账号吗？"),
+            isPresented: $showingAccountSwitchConfirmation
+        ) {
+            Button(L10n.text("account.switch.confirmation.cancel", en: "Cancel", zh: "取消"), role: .cancel) {}
+            Button(L10n.text("account.switch.confirmation.confirm", en: "Switch Account", zh: "切换账号")) {
+                performAccountSwitch()
+            }
+        } message: {
+            Text(L10n.text("account.switch.confirmation.message", en: "Local records stay on this device. Future backup will use the account you just signed in with.", zh: "本地记录会继续保留在这台设备上。之后的云端备份会使用刚刚登录的新账号。"))
         }
     }
 
@@ -114,12 +126,13 @@ struct AccountView: View {
             .buttonStyle(.plain)
             .disabled(isSubmitDisabled)
 
-            Button(action: presentPasswordResetHint) {
+            Button(action: performPasswordReset) {
                 Text(L10n.text("account.forgot_password", en: "Forgot Password?", zh: "忘记密码？"))
                     .font(AppTheme.Typography.meta)
                     .foregroundStyle(AppTheme.Colors.secondaryText)
             }
             .buttonStyle(.plain)
+            .disabled(isPasswordResetDisabled)
         }
         .shellCardStyle()
     }
@@ -194,7 +207,7 @@ struct AccountView: View {
             )
 
             Button(action: { showingSignOutConfirmation = true }) {
-                Text(L10n.text("account.conflict.cta", en: "Clear current session", zh: "退出当前会话"))
+                Text(L10n.text("account.conflict.use_original", en: "Use Original Account", zh: "改用原账号"))
                     .font(AppTheme.Typography.primaryButton)
                     .foregroundStyle(AppTheme.Colors.primaryText)
                     .frame(maxWidth: .infinity)
@@ -203,6 +216,14 @@ struct AccountView: View {
                     .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.chip, style: .continuous))
             }
             .buttonStyle(.plain)
+
+            Button(action: { showingAccountSwitchConfirmation = true }) {
+                actionLabel(
+                    title: L10n.text("account.conflict.switch", en: "Switch to This Account", zh: "切换到这个账号")
+                )
+            }
+            .buttonStyle(.plain)
+            .disabled(isWorking)
         }
         .shellCardStyle()
     }
@@ -339,18 +360,44 @@ struct AccountView: View {
         }
     }
 
+    private func performPasswordReset() {
+        Task {
+            isWorking = true
+            errorMessage = nil
+            defer { isWorking = false }
+
+            do {
+                try await authManager.resetPassword(email: normalizedEmail)
+                errorMessage = L10n.text(
+                    "account.forgot_password.sent",
+                    en: "If an account exists for this email, a password reset message has been sent.",
+                    zh: "如果这个邮箱已注册，找回密码邮件已经发送。"
+                )
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    private func performAccountSwitch() {
+        Task {
+            isWorking = true
+            errorMessage = nil
+            defer { isWorking = false }
+
+            do {
+                try await authManager.switchBindingToCurrentUser()
+                password = ""
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+
     private func performManualSync() {
         Task {
             await syncStatusStore.syncIfEligible(authState: authManager.authState, reason: .manual)
         }
-    }
-
-    private func presentPasswordResetHint() {
-        errorMessage = L10n.text(
-            "account.forgot_password.hint",
-            en: "Password reset will be added with the full account flow. For now, please use the password you used when linking this device.",
-            zh: "完整的找回密码流程会在后续补齐。当前请先使用这台设备绑定时所用的密码。"
-        )
     }
 
     private func runAuthAction(_ operation: @escaping @MainActor () async throws -> Void) {
@@ -386,6 +433,10 @@ struct AccountView: View {
 
     private var isSubmitDisabled: Bool {
         isWorking || normalizedEmail.isEmpty || password.isEmpty
+    }
+
+    private var isPasswordResetDisabled: Bool {
+        isWorking || normalizedEmail.isEmpty
     }
 
     private var syncStatusLabel: String {

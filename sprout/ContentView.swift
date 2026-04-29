@@ -154,6 +154,7 @@ private struct BootstrapFallbackSupabaseService: SupabaseServicing {
     func restoreSession() async throws -> SupabaseSession? { nil }
     func signIn(email: String, password: String) async throws -> SupabaseSession { throw SupabaseServiceError.sdkUnavailable }
     func signUp(email: String, password: String) async throws -> SupabaseSession { throw SupabaseServiceError.sdkUnavailable }
+    func resetPassword(email: String) async throws { throw SupabaseServiceError.sdkUnavailable }
     func signOut() async throws {}
     func fetchServerNow() async throws -> Date { throw SupabaseServiceError.sdkUnavailable }
     func upsertBabyProfile(_ profile: BabyProfileDTO, expectedVersion: Int64?) async throws -> BabyProfileDTO { profile }

@@ -7,6 +7,7 @@ actor MockSupabaseService: SupabaseServicing {
         case upsertRecordItem(id: UUID, expectedVersion: Int64?, imageStoragePath: String?)
         case upsertMemoryEntry(id: UUID, expectedVersion: Int64?, imageStoragePaths: [String])
         case softDelete(table: SupabaseTable, id: UUID, expectedVersion: Int64?)
+        case resetPassword(email: String)
         case uploadAsset(bucket: StorageBucket, path: String, contentType: String)
         case deleteAsset(bucket: StorageBucket, path: String)
     }
@@ -19,8 +20,10 @@ actor MockSupabaseService: SupabaseServicing {
     var deletedRows: [(SupabaseTable, UUID)]
     var storedAssets: [String: Data]
     var operations: [Operation]
+    var passwordResetEmails: [String]
     private var forcedSignInResult: Result<SupabaseSession, Error>?
     private var forcedSignUpResult: Result<SupabaseSession, Error>?
+    private var forcedResetPasswordError: Error?
     private var forcedServerNowError: Error?
     private var forcedBabyUpsertError: Error?
     private var forcedRecordUpsertError: Error?
@@ -43,6 +46,7 @@ actor MockSupabaseService: SupabaseServicing {
         deletedRows = []
         storedAssets = [:]
         operations = []
+        passwordResetEmails = []
         signOutCount = 0
     }
 
@@ -52,6 +56,10 @@ actor MockSupabaseService: SupabaseServicing {
 
     func stubSignUp(result: Result<SupabaseSession, Error>?) {
         forcedSignUpResult = result
+    }
+
+    func stubResetPasswordError(_ error: Error?) {
+        forcedResetPasswordError = error
     }
 
     func stubServerNowError(_ error: Error?) {
@@ -82,6 +90,10 @@ actor MockSupabaseService: SupabaseServicing {
         operations
     }
 
+    func readPasswordResetEmails() -> [String] {
+        passwordResetEmails
+    }
+
     func storeAsset(key: String, data: Data) {
         storedAssets[key] = data
     }
@@ -107,6 +119,14 @@ actor MockSupabaseService: SupabaseServicing {
         return try await signIn(email: email, password: password)
     }
 
+    func resetPassword(email: String) async throws {
+        if let forcedResetPasswordError {
+            throw forcedResetPasswordError
+        }
+        passwordResetEmails.append(email)
+        operations.append(.resetPassword(email: email))
+    }
+
     func signOut() async throws {
         session = nil
         signOutCount += 1
@@ -116,7 +136,7 @@ actor MockSupabaseService: SupabaseServicing {
         if let forcedServerNowError {
             throw forcedServerNowError
         }
-        serverNow
+        return serverNow
     }
 
     func upsertBabyProfile(_ profile: BabyProfileDTO, expectedVersion: Int64?) async throws -> BabyProfileDTO {

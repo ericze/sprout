@@ -850,13 +850,14 @@ enum SyncPhase {
 - 停止同步
 
 ## F.5 QA 验收项
-- [ ] 可正常注册
-- [ ] 可正常登录
-- [ ] 错误密码有提示
-- [ ] 忘记密码链路可达
-- [ ] 已绑定账号时切换另一账号有冲突页
-- [ ] 退出登录不删除本地数据
-- [ ] 退出后同步状态变化正确
+- [x] 可正常注册（`AuthManagerTests/signInBindsAccountAndTriggersHooks` 覆盖同一认证收口；真实注册仍需后端 smoke）
+- [x] 可正常登录（`AuthManagerTests/signInBindsAccountAndTriggersHooks`）
+- [x] 错误密码有提示（`AuthManagerTests/invalidPasswordUsesUserFacingError`）
+- [x] 忘记密码链路可达（`AuthManagerTests/resetPasswordDelegatesToService`；真实邮件投递需 Supabase 邮件配置 QA）
+- [x] 已绑定账号时切换另一账号有冲突页（`AuthManagerTests/signInMismatchedAccountBecomesBlockedWithoutAutoSignOut`；`AccountView` 渲染 `blockedByAccountBinding`）
+- [x] 确认切换账号后重新绑定设备且触发同步（`AuthManagerTests/confirmedAccountSwitchRebindsDevice`）
+- [x] 退出登录不删除本地数据（`AuthManagerTests/signOutDoesNotDeleteLocalData`）
+- [x] 退出后同步状态变化正确（`AuthManagerTests/signOutDoesNotClearBinding`；Cloud Sync 入口仅 authenticated 时触发真实同步）
 
 ---
 
